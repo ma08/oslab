@@ -13,6 +13,74 @@
 #include <locale.h>
 #include <langinfo.h>
 #include <stdint.h>
+
+//http://stackoverflow.com/questions/2180079/how-can-i-copy-a-file-on-unix-using-c
+int cp(const char *to, const char *from)
+{
+    int fd_to, fd_from;
+    char buf[4096];
+    ssize_t nread;
+    int saved_errno;
+
+    fd_from = open(from, O_RDONLY);
+		
+    if (fd_from < 0){
+			printf("%s yoooooooooo");
+        return -1;
+		}
+
+    fd_to = open(to, O_WRONLY | O_CREAT , 0666);
+    if (fd_to < 0){
+			printf("noooooooooo");
+
+        goto out_error;
+		}
+
+    while (nread = read(fd_from, buf, sizeof buf), nread > 0)
+    {
+        char *out_ptr = buf;
+        ssize_t nwritten;
+
+        do {
+            nwritten = write(fd_to, out_ptr, nread);
+
+            if (nwritten >= 0)
+            {
+                nread -= nwritten;
+                out_ptr += nwritten;
+            }
+            else if (errno != EINTR)
+            {
+                goto out_error;
+            }
+        } while (nread > 0);
+    }
+
+    if (nread == 0)
+    {
+        if (close(fd_to) < 0)
+        {
+            fd_to = -1;
+            goto out_error;
+        }
+        close(fd_from);
+
+        /* Success! */
+        return 0;
+    }
+
+  out_error:
+    saved_errno = errno;
+
+    close(fd_from);
+    if (fd_to >= 0)
+        close(fd_to);
+
+    //errno = saved_errno;
+    return -1;
+}
+
+
 /*http://stackoverflow.com/questions/9638714/xcode-c-missing-sperm*/
 char const * sperm(__mode_t mode) {
     static char local_buff[16] = {0};
@@ -197,6 +265,44 @@ int main(int argc, char *argv[])
         printf("\n");
       }
     }
+		else if(strcmp(cmd_words[0],"cp")==0){
+			
+			if(access (cmd_words[1], R_OK)==0){
+				if(access (cmd_words[2], W_OK)==0){
+        	struct stat     statbuf1;
+        	struct stat     statbuf2;
+					if (stat(cmd_words[1], &statbuf1) == -1){}
+					if (stat(cmd_words[2], &statbuf2) == -1){}
+					time_t t1=statbuf1.st_mtime;
+					time_t t2=statbuf2.st_mtime;
+					if(t2>t1){
+						printf("%s: is more recent than %s\n",cmd_words[2],cmd_words[1]);
+					}else{
+						if(cp(cmd_words[2],cmd_words[1])!=0){
+							perror("");
+						}
+					}
+					//printf("%d ",t1);
+					//printf("%d",t2);
+				}else{
+					if(errno==ENOENT){
+				//		printf("wooooooo");
+						if(cp(cmd_words[2],cmd_words[1])!=0){
+							perror("");
+						}
+					//		printf("%d",cp(cmd_words[2],cmd_words[1]));
+					//		if(errno
+
+					}else if(errno=EACCES){
+						perror(cmd_words[2]);
+					}
+				}
+			}else{
+				perror(cmd_words[1]);
+			}
+		}
+	
+
     //if(input[0]=='c'&&input[1]=='d')
     /*printf("%s",input);*/
     /*scanf("%s",input);*/
