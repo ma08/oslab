@@ -69,7 +69,8 @@ int parsecommand(char **parsed,char *str, int len){
       parsed[count][k++]=str[i];
       if(str[i]=='\\'&&k<len-1){
         if(str[i+1]==' '){
-          parsed[count][k++]=str[++i];
+          parsed[count][k-1]=str[++i];
+
         }
       }
       i++;
@@ -103,6 +104,10 @@ int main(int argc, char *argv[])
     if(input[length-1]=='\n')
       input[length-1]='\0';
     int size=parsecommand(cmd_words,input,length);
+    /*for (i = 0; i < size; ++i)
+    {
+      printf("%s\n",cmd_words[i]);
+    }*/
     if(strcmp(cmd_words[0],"exit")==0)break;
     else if(strcmp(cmd_words[0],"pwd")==0){
       printf("%s\n",cwd);
@@ -179,6 +184,8 @@ int main(int argc, char *argv[])
         if((dirp=opendir("."))!=NULL){
           errno=0;
           while((dp=readdir(dirp))!=NULL){
+            if(strcmp(dp->d_name,".")==0||strcmp(dp->d_name,"..")==0)
+              continue;
             printf("%s ",dp->d_name);
           }
           if(errno==0){
