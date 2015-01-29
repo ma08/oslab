@@ -158,16 +158,16 @@ int main(int argc, char *argv[])
   for(i=0;i<20;++i){
     cmd_words[i]=(char*)(malloc(sizeof(char)*100));
   }
-  char cwd[50];
-  char input[50];
-  if(cwd!=getcwd(cwd,50)){
+  char cwd[100];
+  char input[100];
+  if(cwd!=getcwd(cwd,100)){
     perror("getcwd");
     /*printf("%d error",errno);*/
   }
   int length;
   while(1){
     printf("%s>",cwd);
-    fgets(input,50,stdin);
+    fgets(input,100,stdin);
     length=strlen(input)-1;
     if(input[length-1]=='\n')
       input[length-1]='\0';
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
     //if(input[0]=='c'&&input[1]=='d')
     /*printf("%s",input);*/
     /*scanf("%s",input);*/
-    if(cwd!=getcwd(cwd,50)){
+    if(cwd!=getcwd(cwd,100)){
       perror("getcwd");
       /*printf("%d error",errno);*/
     }
