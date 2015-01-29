@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
           while((dp=readdir(dirp))!=NULL){
 /*http://pubs.opengroup.org/onlinepubs/009695399/functions/stat.html*/
             /* Get entry's information. */
-            if(strcmp(dp->d_name,".")==0||strcmp(dp->d_name,"..")==0)
+            if(dp->d_name[0]=='.')
               continue;
             if (stat(dp->d_name, &statbuf) == -1)
               continue;
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
         if((dirp=opendir("."))!=NULL){
           errno=0;
           while((dp=readdir(dirp))!=NULL){
-            if(strcmp(dp->d_name,".")==0||strcmp(dp->d_name,"..")==0)
+            if(dp->d_name[0]=='.')
               continue;
             printf("%s ",dp->d_name);
           }
