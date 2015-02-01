@@ -13,6 +13,7 @@
 #include <locale.h>
 #include <langinfo.h>
 #include <stdint.h>
+#include <libgen.h>
 
 //http://stackoverflow.com/questions/2180079/how-can-i-copy-a-file-on-unix-using-c
 int cp(const char *to, const char *from)
@@ -25,7 +26,7 @@ int cp(const char *to, const char *from)
     fd_from = open(from, O_RDONLY);
 		
     if (fd_from < 0){
-			printf("%s yoooooooooo");
+			printf("yoooooooooo");
         return -1;
 		}
 
@@ -176,6 +177,8 @@ int main(int argc, char *argv[])
     {
       printf("%s\n",cmd_words[i]);
     }*/
+    if(size==0)
+      continue;
     if(strcmp(cmd_words[0],"exit")==0)break;
     else if(strcmp(cmd_words[0],"pwd")==0){
       printf("%s\n",cwd);
@@ -284,8 +287,7 @@ int main(int argc, char *argv[])
 					}
 					//printf("%d ",t1);
 					//printf("%d",t2);
-				}else{
-					if(errno==ENOENT){
+				}else{ if(errno==ENOENT){
 				//		printf("wooooooo");
 						if(cp(cmd_words[2],cmd_words[1])!=0){
 							perror("");
@@ -293,7 +295,7 @@ int main(int argc, char *argv[])
 					//		printf("%d",cp(cmd_words[2],cmd_words[1]));
 					//		if(errno
 
-					}else if(errno=EACCES){
+					}else if(errno==EACCES){
 						perror(cmd_words[2]);
 					}
 				}
@@ -301,6 +303,90 @@ int main(int argc, char *argv[])
 				perror(cmd_words[1]);
 			}
 		}
+    else{
+      int ret;
+      int pid=-1;
+      int background=0;
+      int bool1=cmd_words[size-1][strlen(cmd_words[size-1])-1]=='&';
+      int bool2=strcmp(cmd_words[size-1],"&")==0;
+      if(bool1)
+        cmd_words[size-1][strlen(cmd_words[size-1])-1]='\0';
+      if(bool2)
+        size--;
+      background=bool1||bool2;
+      char *path=cmd_words[0];
+      char filepath[40];
+      char **cmd;
+      /*strcpy(filepath,cmd_words[0]);*/
+      /*printf("woooooooooooooo");*/
+      cmd = (char **)(malloc(sizeof(char **)*size));
+      cmd[0]=basename(cmd_words[0]);
+      for (i = 1; i < size; ++i)
+      {
+        cmd[i]=cmd_words[i];
+      }
+      cmd[i]=(char*)0;
+			if(access (cmd_words[0], X_OK)==0){
+        /*printf("roooooooooooooo");*/
+        
+        if(cmd_words[0][0]!='.'&&cmd_words[0][0]!='/'){
+          strcpy(filepath,".");
+          //strcpy(filepath,cwd);
+          strcat(filepath,"/");
+          strcat(filepath,cmd_words[0]);
+          path=filepath;
+        }
+        /*printf("\n %s",path);*/
+        pid=fork();
+      }else{
+        if(errno==ENOENT&&cmd_words[0][0]!='.'&&cmd_words[0][0]!='/'){
+          char *pathenv = getenv("PATH");
+          int i=0;
+          int k=0;
+          while(i<strlen(pathenv)){
+            while(i<strlen(pathenv)&&pathenv[i]!=':'){
+              filepath[k++]=pathenv[i++];
+            }
+            if(k>0){
+              filepath[k]='\0';
+            }
+            strcat(filepath,"/");
+            strcat(filepath,cmd_words[0]);
+            if(access (filepath, X_OK)==0){
+              /*printf("dddddd");*/
+              path=filepath;
+              pid=fork();
+              break;
+            }
+            i++;
+            k=0;
+          }
+          if(pid==-1)
+            printf("\n%s : No such file or Directory",cmd[0]);
+          /*printf("%s",path);*/
+        }else{
+          perror(cmd_words[0]);
+        }
+      }
+      if(pid==0){
+        /*for(i=0;i<size;i++){
+          printf("---");
+          printf("%s\n",cmd[i]);
+        }*/
+        if(background){
+          freopen("/dev/null", "r", stdin);
+          freopen("/dev/null", "w", stdout);
+        }
+        execv(path,cmd);
+        return 0;
+      }
+      else{
+        if(pid!=-1&&!background){
+          /*printf("waiting");*/
+          wait();
+        }
+      }
+    }
 	
 
     //if(input[0]=='c'&&input[1]=='d')
