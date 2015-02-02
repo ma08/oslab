@@ -1,8 +1,8 @@
-#include<unistd.h>
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
-#include<errno.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -23,25 +23,23 @@ int cp(const char *to, const char *from)
   char buf[4096];
   ssize_t nread;
   int saved_errno;
-
   fd_from = open(from, O_RDONLY);
-
   if (fd_from < 0){
     return -1;
-  }else{
+  }
+  else{
     fd_to = open(to, O_WRONLY | O_CREAT , 0666);
     if (fd_to < 0){
       close(fd_from);
       return -1;
-    }else{
+    }
+    else{
       while (nread = read(fd_from, buf, sizeof buf), nread > 0)
       {
         char *out_ptr = buf;
         ssize_t nwritten;
-
         do {
           nwritten = write(fd_to, out_ptr, nread);
-
           if (nwritten >= 0)
           {
             nread -= nwritten;
@@ -53,12 +51,9 @@ int cp(const char *to, const char *from)
             if (fd_to >= 0)
               close(fd_to);
             return -1;
-
           }
         } while (nread > 0);
       }
-
-
       if (nread == 0)
       {
         if (close(fd_to) < 0)
@@ -67,11 +62,8 @@ int cp(const char *to, const char *from)
           return -1;
         }
         close(fd_from);
-
-        /* Success! */
         return 0;
       }
-
     }
   }
   return -1;
@@ -170,10 +162,6 @@ int main(int argc, char *argv[])
     if(input[length-1]=='\n')
       input[length-1]='\0';
     int size=parsecommand(cmd_words,input,length);
-    /*for (i = 0; i < size; ++i)
-    {
-      printf("%s\n",cmd_words[i]);
-    }*/
     if(size==0)
       continue;
     if(strcmp(cmd_words[0],"exit")==0)break;
@@ -244,8 +232,6 @@ int main(int argc, char *argv[])
         }else{
           perror("");
         }
-
-        
       }else{
         DIR* dirp;
         struct dirent* dp;
@@ -259,7 +245,8 @@ int main(int argc, char *argv[])
           if(errno==0){
             closedir(dirp);
           }
-        }else{
+        }
+        else{
           perror("");
         }
         printf("\n");
@@ -277,7 +264,8 @@ int main(int argc, char *argv[])
 					time_t t2=statbuf2.st_mtime;
 					if(t2>t1){
 						printf("%s: is more recent than %s\n",cmd_words[2],cmd_words[1]);
-					}else{
+					}
+          else{
 						if(cp(cmd_words[2],cmd_words[1])!=0){
 							perror("");
 						}
@@ -285,7 +273,6 @@ int main(int argc, char *argv[])
 					//printf("%d ",t1);
 					//printf("%d",t2);
 				}else{ if(errno==ENOENT){
-				//		printf("wooooooo");
 						if(cp(cmd_words[2],cmd_words[1])!=0){
 							perror("");
 						}
@@ -315,7 +302,6 @@ int main(int argc, char *argv[])
       char filepath[40];
       char **cmd;
       /*strcpy(filepath,cmd_words[0]);*/
-      /*printf("woooooooooooooo");*/
       cmd = (char **)(malloc(sizeof(char **)*size));
       cmd[0]=basename(cmd_words[0]);
       for (i = 1; i < size; ++i)
@@ -324,8 +310,6 @@ int main(int argc, char *argv[])
       }
       cmd[i]=(char*)0;
 			if(access (cmd_words[0], X_OK)==0){
-        /*printf("roooooooooooooo");*/
-        
         if(cmd_words[0][0]!='.'&&cmd_words[0][0]!='/'){
           strcpy(filepath,".");
           //strcpy(filepath,cwd);
@@ -350,7 +334,6 @@ int main(int argc, char *argv[])
             strcat(filepath,"/");
             strcat(filepath,cmd_words[0]);
             if(access (filepath, X_OK)==0){
-              /*printf("dddddd");*/
               path=filepath;
               pid=fork();
               break;
@@ -359,17 +342,13 @@ int main(int argc, char *argv[])
             k=0;
           }
           if(pid==-1)
-            printf("\n%s : No such file or Directory",cmd[0]);
+            printf("\n%s : No such file or Director\n",cmd[0]);
           /*printf("%s",path);*/
         }else{
           perror(cmd_words[0]);
         }
       }
       if(pid==0){
-        /*for(i=0;i<size;i++){
-          printf("---");
-          printf("%s\n",cmd[i]);
-        }*/
         if(background){
           freopen("/dev/null", "r", stdin);
           freopen("/dev/null", "w", stdout);
@@ -384,11 +363,6 @@ int main(int argc, char *argv[])
         }
       }
     }
-	
-
-    //if(input[0]=='c'&&input[1]=='d')
-    /*printf("%s",input);*/
-    /*scanf("%s",input);*/
     if(cwd!=getcwd(cwd,100)){
       perror("getcwd");
       /*printf("%d error",errno);*/
@@ -396,4 +370,3 @@ int main(int argc, char *argv[])
   }
   return 0;
 }
-
