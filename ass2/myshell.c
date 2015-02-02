@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <pwd.h>
 #include <grp.h>
@@ -153,6 +154,7 @@ int parsecommand(char **parsed,char *str, int len){
 
 int main(int argc, char *argv[])
 {
+  int status;
   char **cmd_words;
   int i;
   cmd_words=(char**)(malloc(sizeof(char*)*20));
@@ -305,7 +307,7 @@ int main(int argc, char *argv[])
 		}
     else{
       int ret;
-      int pid=-1;
+      pid_t pid=-1;
       int background=0;
       int bool1=cmd_words[size-1][strlen(cmd_words[size-1])-1]=='&';
       int bool2=strcmp(cmd_words[size-1],"&")==0;
@@ -383,7 +385,7 @@ int main(int argc, char *argv[])
       else{
         if(pid!=-1&&!background){
           /*printf("waiting");*/
-          wait();
+          wait(&status);
         }
       }
     }
