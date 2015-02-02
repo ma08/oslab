@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
             k=0;
           }
           if(pid==-1)
-            printf("\n%s : No such file or Director\n",cmd[0]);
+            printf("%s : No such file or Directory\n",cmd[0]);
           /*printf("%s",path);*/
         }else{
           perror(cmd_words[0]);
