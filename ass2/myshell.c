@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
       else{
         if(pid!=-1&&!background){
           /*printf("waiting");*/
-          wait(&status);
+          waitpid(pid,&status,0);
         }
       }
     }
