@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
   int i;
   pipe_ids=(int**)(malloc(sizeof(int*)*5));
   char **cmd = (char **)(malloc(sizeof(char **)*4));
-  cmd[0]="child.c";
+  cmd[0]="child.out";
   cmd[3]=(char *)0;
   for(i=0;i<5;++i)
     pipe_ids[i]=(int*)(malloc(sizeof(int)*2));
@@ -24,7 +24,8 @@ int main(int argc, char *argv[])
     cmd[2]=b;
     sprintf(b,"%d",pipe_ids[i][1]);
     if(pid==0){
-      execvp("child.c",cmd);
+      execvp("./child.out",cmd);
+      perror("");
     }
   }
   return 0;
