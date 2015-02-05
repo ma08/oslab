@@ -4,6 +4,7 @@
 int main(int argc, char *argv[])
 {
   int **pipe_ids;
+  char buf[100];
   pid_t pid=-1;
   pid_t child_pids[5];
   char a[10];
@@ -29,7 +30,8 @@ int main(int argc, char *argv[])
       execvp("./child.out",cmd);
       perror("");
     }else{
-      /*write(pipe_ids[i][0], "Hello world\n", 15); */
+      sprintf(buf,"%d",i);
+      write(pipe_ids[i][1], buf, 5); 
     }
   }
   return 0;
