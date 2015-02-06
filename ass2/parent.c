@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   for(i=0;i<5;++i){
     ptoc_ids[i]=(int*)(malloc(sizeof(int)*2));
     ctop_ids[i]=(int*)(malloc(sizeof(int)*2));
-  }
+  } 
   for (i = 0; i < 5; ++i)
   {
     pipe(ptoc_ids[i]);
@@ -92,11 +92,13 @@ int main(int argc, char *argv[])
     strcpy(buf2,"oo");
     /*close(ctop_ids[i][1]);*/
     read(ctop_ids[i][0],buf2,sizeof(buf2));
+    printf("Child %d sends READY\n",i+1);
     if(errno!=0)
       perror("");
     /*close(ctop_ids[i][0]);*/
     printf("\n%d %s",i,buf2);
   }
+  printf("Parent READY\n");
   k=n/2;
   while(1){
     while(1){
@@ -111,12 +113,13 @@ int main(int argc, char *argv[])
       /*perror("");*/
 
       write_int_to_child(rand_child,REQUEST,ptoc_ids);
+      printf("Parent sends REQUEST to Child %d\n",rand_child+1);
 
       read(ctop_ids[rand_child][0],buf2,sizeof(buf2));
       sig=strtol(buf2,NULL,10);
       if(sig!=-1){
         pivot=sig;
-        printf("\n\n--pivot---%d\n",pivot);
+        printf("Child %d sends %d to parent\n",rand_child+1,pivot);
         break;
       }
     }
@@ -130,6 +133,7 @@ int main(int argc, char *argv[])
     }*/
     sprintf(buf,"%d",pivot);
     nbytes=write_to_all(buf,ptoc_ids);
+    printf("Parent broadcasts pivot %d to all children\n",pivot);
     /*nbytes=strlen(buf)+1;
     for (i = 0; i < 5; ++i)
     {
@@ -138,23 +142,37 @@ int main(int argc, char *argv[])
       [>perror("");<]
     }*/
     sum=0;
+    int sig[5];
     for (i = 0; i < 5; ++i)
     {
       read(ctop_ids[i][0],buf2,sizeof(buf2));
-      sig=strtol(buf2,NULL,10);
-      sum+=sig;
-      printf("\n %d %d",i,sig);
+      sig[i]=strtol(buf2,NULL,10);
+      int j=0;
+      for(j=0;j<5;j++)
+      {printf("Child %d receives pivot and replies %d\n",j+1,sig[j]);}
+      sum+=sig[i];
       /*perror("");*/
     }
+    printf("Parent: m=%d + %d + %d + %d + %d = %d. ",sig[0],sig[1],sig[2],sig[3],sig[4],sum);
     if(sum==k){
-      printf("\n--%d is the median\n",pivot);
+      printf(" %d=%d/2.Median Found!.\n",sum,n);
       sprintf(buf,"%d",EXIT);
+      printf("Child 1 terminates\n");
+      printf("Child 2 terminates\n");
+      printf("Child 3 terminates\n");
+      printf("Child 4 terminates\n");
+      printf("Child 5 terminates\n");
       nbytes=write_to_all(buf,ptoc_ids);
+      printf("Parent terminates\n");
       return 0;
     }else if(sum>k){
+      printf("Median not found. All elements smaller than pivot are removed by child processes.\n");
+      printf("Process continued again. :(\n");
       sprintf(buf,"%d",SMALL);
       nbytes=write_to_all(buf,ptoc_ids);
     }else if(sum<k){
+      printf("Median not found. All elements larger than pivot are removed by child processes.\n");
+      printf("Process continued again. :(\n");
       sprintf(buf,"%d",LARGE);
       nbytes=write_to_all(buf,ptoc_ids);
       k=k-sum;
