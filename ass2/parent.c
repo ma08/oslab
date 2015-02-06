@@ -147,15 +147,14 @@ int main(int argc, char *argv[])
     {
       read(ctop_ids[i][0],buf2,sizeof(buf2));
       sig[i]=strtol(buf2,NULL,10);
-      int j=0;
-      for(j=0;j<5;j++)
-      {printf("Child %d receives pivot and replies %d\n",j+1,sig[j]);}
+      /*for(j=0;j<5;j++)*/
+      printf("Child %d receives pivot and replies %d\n",i+1,sig[i]);
       sum+=sig[i];
       /*perror("");*/
     }
     printf("Parent: m=%d + %d + %d + %d + %d = %d. ",sig[0],sig[1],sig[2],sig[3],sig[4],sum);
     if(sum==k){
-      printf(" %d=%d/2.Median Found!.\n",sum,n);
+      printf(" %d=%d/2.Median Found!.\n",pivot,n);
       sprintf(buf,"%d",EXIT);
       printf("Child 1 terminates\n");
       printf("Child 2 terminates\n");
