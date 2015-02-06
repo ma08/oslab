@@ -3,15 +3,27 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
+#include <time.h>
+#include "codes.h"
+
 int main(int argc, char const *argv[])
 {
-	int i;
-  int id;
+  srand(time(NULL));
+	int i,j,ret;
+  int num_greater;
+  int sig;
+  int id,num;
+  int pivot;
   int nbytes;
+  FILE *fp;
+  int data[5];
+  int size_data=0;
   const int BSIZE = 100;
   char buf[BSIZE];
   char outputfilename[20];
+  char datafilename[20];
   strcpy(outputfilename,"childoutput");
+  strcpy(datafilename,"data");
 	/*int pipe_value[2];*/
 	int read_end=strtol(argv[1],NULL,10);
 	int write_end=strtol(argv[2],NULL,10);
@@ -20,9 +32,11 @@ int main(int argc, char const *argv[])
   nbytes = read(read_end, buf, BSIZE);   
   /*printf("--%s\n",buf);*/
   /*perror("");*/
-  close(read_end);
+  /*close(read_end);*/
 
   strcat(outputfilename,buf);
+  strcat(datafilename,buf);
+  strcat(datafilename,".txt");
   freopen(outputfilename,"w",stdout);
   printf("%d\n",read_end);
   printf("%d\n",write_end);
@@ -32,17 +46,91 @@ int main(int argc, char const *argv[])
   }*/
   id=strtol(buf,NULL,10);
   /*printf("%d\n",id);*/
-  sprintf(buf,"%d",1000);
+  /*sprintf(buf,"%d",1000);*/
   /*while(read(pipe_value[1],buf,BSIZE)<=0)perror("hoo");*/
   /*if(write(pipe_value[1], buf, BSIZE)<=0)
     perror("hoo"); */
-  nbytes = strlen(buf)+1;
+  /*nbytes = strlen(buf)+1;*/
   /*close(read_end);*/
   /*printf("----writing %d----",write_end);*/
-  write(write_end, buf, nbytes);
-  if(errno!=0)
+  /*write(write_end, buf, nbytes);*/
+  /*if(errno!=0)
     perror("hoo");
-  close(write_end);
+  close(write_end);*/
+
+  if((fp = fopen(datafilename, "r+")) != NULL) {
+    /*printf("wooooooooo");*/
+    /*perror(datafilename);*/
+    for (i = 0; i < 5; ++i)
+    {
+      ret=fscanf(fp, "%d", &num);
+      if(ret!=EOF){
+        size_data++;
+        data[i]=num;
+      }else{
+        perror("Erroor");
+      }
+    }
+    for (i = 0; i < 5; ++i)
+      printf("%d ",data[i]);
+
+    sprintf(buf,"%d",READY);
+    nbytes = strlen(buf)+1;
+    write(write_end, buf, nbytes);
+    /*close(write_end);*/
+    strcpy(buf,"oo");
+
+    /*for (j = 0; j < 2; ++j)*/
+    /*{*/
+      
+    /*}*/
+    while(1){
+    /*if(id==2){*/
+
+      errno=0;
+      nbytes = read(read_end, buf, 5);   
+      /*while(read(read_end, buf, 5)==0);*/
+      /*perror("");*/
+      printf("---%d--%s--",nbytes,buf);
+      /*close(read_end);*/
+      sig=strtol(buf,NULL,10);
+      switch (sig) {
+        case REQUEST:
+          if(size_data>0){
+            sprintf(buf,"\n%d",data[rand()%size_data]);
+          }else{
+            sprintf(buf,"\n-1");
+          }
+          nbytes = strlen(buf)+1;
+          write(write_end, buf, nbytes);
+          /*printf("hoooooooooo");*/
+          break;
+        case PIVOT:
+          nbytes = read(read_end, buf, 5);   
+          printf("\n--%d-%s--\n",nbytes,buf);
+          sig=strtol(buf,NULL,10);
+          pivot=sig;
+          printf("\npivot is %d",pivot);
+          num_greater=0;
+          for (i = 0; i < size_data; ++i)
+          {
+            if(data[i]>pivot)
+              num_greater++;
+            
+          }
+          sprintf(buf,"\n%d",num_greater);
+          nbytes = strlen(buf)+1;
+          write(write_end, buf, nbytes);
+          /*perror("");*/
+          break;
+        /*default:*/
+      }
+    /*}*/
+    }
+  }else{
+    perror(datafilename);
+    exit(1);
+  }
 
 	return 0;
 }

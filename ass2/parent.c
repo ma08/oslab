@@ -3,9 +3,27 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+#include "codes.h"
+
+int write_to_child(int childno,int sig,int **ptoc_ids){
+  int nbytes;
+  char *buf=(char *)(malloc(sizeof(char)*20));
+  sprintf(buf,"\n%d",sig);
+  nbytes=strlen(buf)+1;
+  nbytes=write(ptoc_ids[childno][1], buf, nbytes); 
+  return nbytes;
+}
+
 int main(int argc, char *argv[])
 {
+  srand(time(NULL));
   int **ptoc_ids,**ctop_ids;
+  int sig;
+  int pivot;
+  int rand_child;
+  int n=25;
+  int get_pivot=0;
   int nbytes;
   char buf[100];
   char buf2[100];
@@ -43,24 +61,65 @@ int main(int argc, char *argv[])
       execvp("./child.out",cmd);
       /*perror("");*/
     }else{
-      sprintf(buf,"%d",i);
+      sprintf(buf,"%d",i+1);
       nbytes=strlen(buf)+1;
-      close(ptoc_ids[i][0]);
+      /*close(ptoc_ids[i][0]);*/
       /*printf("\n$$$%d\n",nbytes);*/
       nbytes=write(ptoc_ids[i][1], buf, nbytes); 
       /*printf("\n$$$%d\n",nbytes);*/
-      close(ptoc_ids[i][1]);
+      /*close(ptoc_ids[i][1]);*/
     }
   }
   for(i=0; i<5 ;++i){
     /*printf("----reading----");*/
     strcpy(buf2,"oo");
-    close(ctop_ids[i][1]);
+    /*close(ctop_ids[i][1]);*/
     read(ctop_ids[i][0],buf2,sizeof(buf2));
     if(errno!=0)
       perror("");
-    close(ctop_ids[i][0]);
+    /*close(ctop_ids[i][0]);*/
     printf("\n%d %s",i,buf2);
   }
+  while(1){
+    rand_child=rand()%5;
+    /*printf("---%d----",rand_child+1);*/
+    sprintf(buf,"%d",REQUEST);
+    nbytes=strlen(buf)+1;
+    /*close(ptoc_ids[rand_child][0]);*/
+    /*printf("----writing----");*/
+    nbytes=write(ptoc_ids[rand_child][1], buf, nbytes); 
+    /*printf("----%d---written---",nbytes);*/
+    /*perror("");*/
+
+    read(ctop_ids[rand_child][0],buf2,sizeof(buf2));
+    sig=strtol(buf2,NULL,10);
+    if(sig!=-1){
+      pivot=sig;
+      printf("\n\n--pivot---%d",pivot);
+      break;
+    }
+  }
+  sprintf(buf,"%d",PIVOT);
+  nbytes=strlen(buf)+1;
+  for (i = 0; i < 5; ++i)
+  {
+    write(ptoc_ids[i][1], buf, nbytes); 
+  }
+  sprintf(buf,"%d",pivot);
+  nbytes=strlen(buf)+1;
+  for (i = 0; i < 5; ++i)
+  {
+    write(ptoc_ids[i][1], buf, nbytes); 
+    /*perror("");*/
+  }
+  for (i = 0; i < 5; ++i)
+  {
+    read(ctop_ids[i][0],buf2,sizeof(buf2));
+    sig=strtol(buf2,NULL,10);
+    printf("\n %d %d",i,sig);
+    /*perror("");*/
+  }
+  /*close(ptoc_ids[rand_child][1]);*/
+
   return 0;
 }
