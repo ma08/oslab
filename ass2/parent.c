@@ -6,10 +6,16 @@
 #include <time.h>
 #include "codes.h"
 
-int write_to_child(int childno,int sig,int **ptoc_ids){
+int write_int_to_child(int childno,int sig,int **ptoc_ids){
   int nbytes;
   char *buf=(char *)(malloc(sizeof(char)*20));
-  sprintf(buf,"\n%d",sig);
+  sprintf(buf,"%d",sig);
+  nbytes=strlen(buf)+1;
+  nbytes=write(ptoc_ids[childno][1], buf, nbytes); 
+  return nbytes;
+}
+int write_str_to_child(int childno,char* buf,int **ptoc_ids){
+  int nbytes;
   nbytes=strlen(buf)+1;
   nbytes=write(ptoc_ids[childno][1], buf, nbytes); 
   return nbytes;
@@ -61,11 +67,12 @@ int main(int argc, char *argv[])
       execvp("./child.out",cmd);
       /*perror("");*/
     }else{
-      sprintf(buf,"%d",i+1);
-      nbytes=strlen(buf)+1;
+      write_int_to_child(i,i+1,ptoc_ids);
+      /*sprintf(buf,"%d",i+1);*/
+      /*nbytes=strlen(buf)+1;*/
       /*close(ptoc_ids[i][0]);*/
       /*printf("\n$$$%d\n",nbytes);*/
-      nbytes=write(ptoc_ids[i][1], buf, nbytes); 
+      /*nbytes=write(ptoc_ids[i][1], buf, nbytes); */
       /*printf("\n$$$%d\n",nbytes);*/
       /*close(ptoc_ids[i][1]);*/
     }
@@ -83,19 +90,21 @@ int main(int argc, char *argv[])
   while(1){
     rand_child=rand()%5;
     /*printf("---%d----",rand_child+1);*/
-    sprintf(buf,"%d",REQUEST);
-    nbytes=strlen(buf)+1;
+    /*sprintf(buf,"%d",REQUEST);*/
+    /*nbytes=strlen(buf)+1;*/
     /*close(ptoc_ids[rand_child][0]);*/
     /*printf("----writing----");*/
-    nbytes=write(ptoc_ids[rand_child][1], buf, nbytes); 
+    /*nbytes=write(ptoc_ids[rand_child][1], buf, nbytes); */
     /*printf("----%d---written---",nbytes);*/
     /*perror("");*/
+
+    write_int_to_child(rand_child,REQUEST,ptoc_ids);
 
     read(ctop_ids[rand_child][0],buf2,sizeof(buf2));
     sig=strtol(buf2,NULL,10);
     if(sig!=-1){
       pivot=sig;
-      printf("\n\n--pivot---%d",pivot);
+      printf("\n\n--pivot---%d\n",pivot);
       break;
     }
   }
@@ -103,13 +112,15 @@ int main(int argc, char *argv[])
   nbytes=strlen(buf)+1;
   for (i = 0; i < 5; ++i)
   {
-    write(ptoc_ids[i][1], buf, nbytes); 
+    write_str_to_child(i,buf,ptoc_ids);
+    /*write(ptoc_ids[i][1], buf, nbytes); */
   }
   sprintf(buf,"%d",pivot);
   nbytes=strlen(buf)+1;
   for (i = 0; i < 5; ++i)
   {
-    write(ptoc_ids[i][1], buf, nbytes); 
+    write_str_to_child(i,buf,ptoc_ids);
+    /*write(ptoc_ids[i][1], buf, nbytes); */
     /*perror("");*/
   }
   for (i = 0; i < 5; ++i)

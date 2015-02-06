@@ -6,6 +6,15 @@
 #include <time.h>
 #include "codes.h"
 
+int write_to_parent(int sig, int write_end){
+  int nbytes;
+  char *buf=(char *)(malloc(sizeof(char)*20));
+  sprintf(buf,"%d",sig);
+  nbytes=strlen(buf)+1;
+  nbytes=write(write_end, buf, nbytes); 
+  return nbytes;
+}
+
 int main(int argc, char const *argv[])
 {
   srand(time(NULL));
@@ -37,14 +46,16 @@ int main(int argc, char const *argv[])
   strcat(outputfilename,buf);
   strcat(datafilename,buf);
   strcat(datafilename,".txt");
+  /*printf("\n---%s---\n",datafilename);*/
   freopen(outputfilename,"w",stdout);
-  printf("%d\n",read_end);
-  printf("%d\n",write_end);
+  /*printf("%d\n",read_end);*/
+  /*printf("%d\n",write_end);*/
   /*for (i = 0; i < 2; ++i)
   {
     printf("%d\n",pipe_value[i]);
   }*/
   id=strtol(buf,NULL,10);
+  /*printf("\n--%d\n",id);*/
   /*printf("%d\n",id);*/
   /*sprintf(buf,"%d",1000);*/
   /*while(read(pipe_value[1],buf,BSIZE)<=0)perror("hoo");*/
@@ -71,12 +82,14 @@ int main(int argc, char const *argv[])
         perror("Erroor");
       }
     }
-    for (i = 0; i < 5; ++i)
-      printf("%d ",data[i]);
+    /*for (i = 0; i < 5; ++i)
+      printf("%d ",data[i]);*/
 
-    sprintf(buf,"%d",READY);
+    /*sprintf(buf,"%d",READY);
     nbytes = strlen(buf)+1;
-    write(write_end, buf, nbytes);
+    write(write_end, buf, nbytes);*/
+
+    write_to_parent(READY,write_end);
     /*close(write_end);*/
     strcpy(buf,"oo");
 
@@ -91,26 +104,28 @@ int main(int argc, char const *argv[])
       nbytes = read(read_end, buf, 5);   
       /*while(read(read_end, buf, 5)==0);*/
       /*perror("");*/
-      printf("---%d--%s--",nbytes,buf);
+      printf("\n---%d--%s--\n",id,buf);
       /*close(read_end);*/
       sig=strtol(buf,NULL,10);
       switch (sig) {
         case REQUEST:
           if(size_data>0){
-            sprintf(buf,"\n%d",data[rand()%size_data]);
+            write_to_parent(data[rand()%size_data],write_end);
+            /*sprintf(buf,"\n%d",data[rand()%size_data]);*/
           }else{
-            sprintf(buf,"\n-1");
+            write_to_parent(-1,write_end);
+            /*sprintf(buf,"\n-1");*/
           }
-          nbytes = strlen(buf)+1;
-          write(write_end, buf, nbytes);
+          /*nbytes = strlen(buf)+1;*/
+          /*write(write_end, buf, nbytes);*/
           /*printf("hoooooooooo");*/
           break;
         case PIVOT:
           nbytes = read(read_end, buf, 5);   
-          printf("\n--%d-%s--\n",nbytes,buf);
+          printf("\n--%d-%s--\n",id,buf);
           sig=strtol(buf,NULL,10);
           pivot=sig;
-          printf("\npivot is %d",pivot);
+          printf("\npivot is %d\n",pivot);
           num_greater=0;
           for (i = 0; i < size_data; ++i)
           {
@@ -118,9 +133,10 @@ int main(int argc, char const *argv[])
               num_greater++;
             
           }
-          sprintf(buf,"\n%d",num_greater);
-          nbytes = strlen(buf)+1;
-          write(write_end, buf, nbytes);
+          /*sprintf(buf,"\n%d",num_greater);*/
+          /*nbytes = strlen(buf)+1;*/
+          /*write(write_end, buf, nbytes);*/
+          write_to_parent(num_greater,write_end);
           /*perror("");*/
           break;
         /*default:*/
