@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     if(errno!=0)
       perror("");
     /*close(ctop_ids[i][0]);*/
-    printf("\n%d %s",i,buf2);
+    /*printf("\n%d %s",i,buf2);*/
   }
   printf("Parent READY\n");
   k=n/2;
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
     }
     printf("Parent: m=%d + %d + %d + %d + %d = %d. ",sig[0],sig[1],sig[2],sig[3],sig[4],sum);
     if(sum==k){
-      printf(" %d=%d/2.Median Found!.\n",pivot,n);
+      printf(" %d=%d/2.Median Found!.\n\nMedian = %d\n\n",sum,2*k,pivot);
       sprintf(buf,"%d",EXIT);
       printf("Child 1 terminates\n");
       printf("Child 2 terminates\n");
