@@ -26,8 +26,7 @@ int write_to_all(char *buf,int **ptoc_ids){
   int nbytes=strlen(buf)+1;
   for (i = 0; i < 5; ++i)
   {
-    nbytes=write(ptoc_ids[i][1], buf, nbytes); 
-  }
+    nbytes=write(ptoc_ids[i][1], buf, nbytes); }
   return nbytes;
 }
 
@@ -149,6 +148,8 @@ int main(int argc, char *argv[])
     }
     if(sum==k){
       printf("\n--%d is the median\n",pivot);
+      sprintf(buf,"%d",EXIT);
+      nbytes=write_to_all(buf,ptoc_ids);
       return 0;
     }else if(sum>k){
       sprintf(buf,"%d",SMALL);

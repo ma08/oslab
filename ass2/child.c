@@ -72,7 +72,7 @@ int main(int argc, char const *argv[])
   strcat(datafilename,buf);
   strcat(datafilename,".txt");
   /*printf("\n---%s---\n",datafilename);*/
-  /*freopen(outputfilename,"w",stdout);*/
+  freopen(outputfilename,"w",stdout);
   /*printf("%d\n",read_end);*/
   /*printf("%d\n",write_end);*/
   /*for (i = 0; i < 2; ++i)
@@ -186,6 +186,8 @@ int main(int argc, char const *argv[])
           }
           size_data=drop_numbers(&data,size_data);
           break;
+        case EXIT:
+          return 0;
         /*default:*/
       }
     /*}*/
