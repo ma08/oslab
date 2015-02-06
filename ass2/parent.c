@@ -21,12 +21,23 @@ int write_str_to_child(int childno,char* buf,int **ptoc_ids){
   return nbytes;
 }
 
+int write_to_all(char *buf,int **ptoc_ids){
+  int i;
+  int nbytes=strlen(buf)+1;
+  for (i = 0; i < 5; ++i)
+  {
+    nbytes=write(ptoc_ids[i][1], buf, nbytes); 
+  }
+  return nbytes;
+}
+
 int main(int argc, char *argv[])
 {
   srand(time(NULL));
   int **ptoc_ids,**ctop_ids;
   int sig;
   int pivot;
+  int k,sum;
   int rand_child;
   int n=25;
   int get_pivot=0;
@@ -87,48 +98,66 @@ int main(int argc, char *argv[])
     /*close(ctop_ids[i][0]);*/
     printf("\n%d %s",i,buf2);
   }
+  k=n/2;
   while(1){
-    rand_child=rand()%5;
-    /*printf("---%d----",rand_child+1);*/
-    /*sprintf(buf,"%d",REQUEST);*/
-    /*nbytes=strlen(buf)+1;*/
-    /*close(ptoc_ids[rand_child][0]);*/
-    /*printf("----writing----");*/
-    /*nbytes=write(ptoc_ids[rand_child][1], buf, nbytes); */
-    /*printf("----%d---written---",nbytes);*/
-    /*perror("");*/
+    while(1){
+      rand_child=rand()%5;
+      /*printf("---%d----",rand_child+1);*/
+      /*sprintf(buf,"%d",REQUEST);*/
+      /*nbytes=strlen(buf)+1;*/
+      /*close(ptoc_ids[rand_child][0]);*/
+      /*printf("----writing----");*/
+      /*nbytes=write(ptoc_ids[rand_child][1], buf, nbytes); */
+      /*printf("----%d---written---",nbytes);*/
+      /*perror("");*/
 
-    write_int_to_child(rand_child,REQUEST,ptoc_ids);
+      write_int_to_child(rand_child,REQUEST,ptoc_ids);
 
-    read(ctop_ids[rand_child][0],buf2,sizeof(buf2));
-    sig=strtol(buf2,NULL,10);
-    if(sig!=-1){
-      pivot=sig;
-      printf("\n\n--pivot---%d\n",pivot);
-      break;
+      read(ctop_ids[rand_child][0],buf2,sizeof(buf2));
+      sig=strtol(buf2,NULL,10);
+      if(sig!=-1){
+        pivot=sig;
+        printf("\n\n--pivot---%d\n",pivot);
+        break;
+      }
     }
-  }
-  sprintf(buf,"%d",PIVOT);
-  nbytes=strlen(buf)+1;
-  for (i = 0; i < 5; ++i)
-  {
-    write_str_to_child(i,buf,ptoc_ids);
-    /*write(ptoc_ids[i][1], buf, nbytes); */
-  }
-  sprintf(buf,"%d",pivot);
-  nbytes=strlen(buf)+1;
-  for (i = 0; i < 5; ++i)
-  {
-    write_str_to_child(i,buf,ptoc_ids);
-    /*write(ptoc_ids[i][1], buf, nbytes); */
-    /*perror("");*/
-  }
-  for (i = 0; i < 5; ++i)
-  {
-    read(ctop_ids[i][0],buf2,sizeof(buf2));
-    sig=strtol(buf2,NULL,10);
-    printf("\n %d %d",i,sig);
-    /*perror("");*/
+    sprintf(buf,"%d",PIVOT);
+    nbytes=write_to_all(buf,ptoc_ids);
+    /*nbytes=strlen(buf)+1;*/
+    /*for (i = 0; i < 5; ++i)
+    {
+      write_str_to_child(i,buf,ptoc_ids);
+      [>write(ptoc_ids[i][1], buf, nbytes); <]
+    }*/
+    sprintf(buf,"%d",pivot);
+    nbytes=write_to_all(buf,ptoc_ids);
+    /*nbytes=strlen(buf)+1;
+    for (i = 0; i < 5; ++i)
+    {
+      write_str_to_child(i,buf,ptoc_ids);
+      [>write(ptoc_ids[i][1], buf, nbytes); <]
+      [>perror("");<]
+    }*/
+    sum=0;
+    for (i = 0; i < 5; ++i)
+    {
+      read(ctop_ids[i][0],buf2,sizeof(buf2));
+      sig=strtol(buf2,NULL,10);
+      sum+=sig;
+      printf("\n %d %d",i,sig);
+      /*perror("");*/
+    }
+    if(sum==k){
+      printf("\n--%d is the median\n",pivot);
+      return 0;
+    }else if(sum>k){
+      sprintf(buf,"%d",SMALL);
+      nbytes=write_to_all(buf,ptoc_ids);
+    }else if(sum<k){
+      sprintf(buf,"%d",LARGE);
+      nbytes=write_to_all(buf,ptoc_ids);
+      k=k-sum;
+    }
   }
   /*close(ptoc_ids[rand_child][1]);*/
 
