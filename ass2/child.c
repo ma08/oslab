@@ -53,7 +53,7 @@ int main(int argc, char const *argv[])
   char buf[BSIZE];
   char outputfilename[20];
   char datafilename[20];
-  strcpy(datafilename,"data");
+  strcpy(datafilename,"data_");
 	int read_end=strtol(argv[1],NULL,10);
 	int write_end=strtol(argv[2],NULL,10);
   nbytes = read(read_end, buf, BSIZE);
