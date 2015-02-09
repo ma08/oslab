@@ -53,15 +53,12 @@ int main(int argc, char const *argv[])
   char buf[BSIZE];
   char outputfilename[20];
   char datafilename[20];
-  strcpy(outputfilename,"childoutput");
   strcpy(datafilename,"data");
 	int read_end=strtol(argv[1],NULL,10);
 	int write_end=strtol(argv[2],NULL,10);
   nbytes = read(read_end, buf, BSIZE);
-  strcat(outputfilename,buf);
   strcat(datafilename,buf);
   strcat(datafilename,".txt");
-  freopen(outputfilename,"w",stdout);
   id=strtol(buf,NULL,10);
   if((fp=fopen(datafilename,"r+"))!=NULL){
     for(i=0;i<5;++i)
