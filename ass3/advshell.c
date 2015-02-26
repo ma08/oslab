@@ -108,12 +108,13 @@ char const * sperm(__mode_t mode) {
     return local_buff;
 }
 
+//input_red is the char array in which file name of input redirection will be stored
+//output_red is the char array in which file name of output redirection will be stored
 int parsecommand(char **parsed,char *str, int len, char *input_red, char *output_red){
   int count=0;
-  /*char *input_red_orig=input_red;*/
-  /*char *output_red_orig=output_red;*/
   char* red_arr=output_red;
   int redirection=0;
+  int redirection2=0;
   int red_count=0;
   int i=0,k=0;
   while(i<len){
@@ -124,8 +125,27 @@ int parsecommand(char **parsed,char *str, int len, char *input_red, char *output
       break;
     while(i<len&&(str[i]!=' ')){
       if(redirection){
+        //when no spaces are given in the input
         if(str[i]=='>'||str[i]=='<'){
-          //error
+          redirection2=str[i]=='>'?1:str[i]=='<'?2:0;
+          if(redirection2==redirection){
+            /*printf("woo");*/
+            red_count=0;
+            i++;
+            continue;
+          }else{
+            red_arr[red_count++]='\0';
+            red_count=0;
+            redirection=redirection2;
+            if(redirection==1){
+              red_arr=output_red;
+            }
+            else{
+              red_arr=input_red;
+            }           
+            i++;
+            continue;
+          }
         }
         else{
           red_arr[red_count++]=str[i];
@@ -139,6 +159,7 @@ int parsecommand(char **parsed,char *str, int len, char *input_red, char *output
         }
       }
       else{
+        //checking for redirection
         redirection= str[i]=='>'?1:str[i]=='<'?2:0;
         if(redirection){
           red_count=0;
@@ -181,7 +202,6 @@ int main(int argc, char *argv[])
   int write_end;
   int read_end;
   int saved_stdout;
-  int in_pipe_id[2];
   int out_pipe_id[2];
   int num_pipes=0;
   int saved_stdin;
@@ -224,21 +244,19 @@ int main(int argc, char *argv[])
     if(token==NULL)
       token=input;
     token_1=strtok(tok_input_1,"|");
+    //counting number of pipes
     while((token_1=strtok(NULL,"|"))!=NULL){
       num_pipes++;
-      /*printf("ruuuuuuuu");*/
     } 
-    /*printf("%d",num_pipes);*/
+    //saving stdin and stdout to restore later
     saved_stdin=dup(STDIN_FILENO);
-    /*perror("");*/
     saved_stdout=dup(STDOUT_FILENO);
-    /*perror("");*/
+
+    //looping through the pipes
     token = strtok(tok_input, "|");
     while(token!=NULL){
-      /*printf("\n\n---\n\n");
-      token = strtok(NULL, "|");
-      continue;*/
       if(num_pipes > 0){
+        //piping logic
         if(pipe_iter==0){
           pipe(out_pipe_id);
           write_end=out_pipe_id[1];
@@ -257,8 +275,10 @@ int main(int argc, char *argv[])
       }
       input_red[0]='\0';
       output_red[0]='\0';
-      /*printf("\n--%s--",token);*/
       int size=parsecommand(cmd_words,token,strlen(token),input_red,output_red);
+      if(size==0)
+        continue;
+      //checking for redirection
       if (input_red[0]!='\0'){
         input_fd=open(input_red,O_RDONLY);
         if(errno){
@@ -277,18 +297,7 @@ int main(int argc, char *argv[])
         dup2(output_fd,STDOUT_FILENO);
         close(output_fd);
       }
-      /*printf("\n-------------------------\n");
-      for (i = 0; i < size; ++i)
-      {
-        printf("%s  ",cmd_words[i]);
-        
-      }
-      printf("\ninput_red: %s",input_red);
-      printf("\noutput_red: %s\n",output_red);*/
-      /*token = strtok(NULL, "|");
-      continue;*/
-      if(size==0)
-        continue;
+      
       if(strcmp(cmd_words[0],"exit")==0)break;
       else if(strcmp(cmd_words[0],"pwd")==0){
         printf("%s\n",cwd);
@@ -479,18 +488,8 @@ int main(int argc, char *argv[])
           }
         }
       }
-      /*printf("\n%s",token);*/
-      /*printf("\nbooo");*/
-      errno=0;
       token = strtok(NULL, "|");
-      /*if(num_pipes==0){
-        if (input_red[0]!='\0'){
-          dup2(saved_stdin,STDIN_FILENO);
-        }
-        if (output_red[0]!='\0'||(num_pipes>0&&pipe_iter!=num_pipes)){
-          dup2(saved_stdout,STDOUT_FILENO);
-        }
-      }*/
+      //closing file descriptores
       if(num_pipes>0&&pipe_iter!=num_pipes){
         close(write_end);
       }
@@ -499,15 +498,12 @@ int main(int argc, char *argv[])
       }
       pipe_iter++;
 
-      /*return 0;*/
-      /*printf("\n%s",token);*/
-      /*printf("\n---");*/
     }
+    //restoring stdout and stdin
     dup2(saved_stdin,STDIN_FILENO);
     dup2(saved_stdout,STDOUT_FILENO);
     close(saved_stdin);
     close(saved_stdout);
-
     if(cwd!=getcwd(cwd,100)){
       perror("getcwd");
     }
