@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <signal.h>
+#include <signal.h>     // SIGUSR1 for READY and SIGUSR2 for KILLING THE CHILD PROCESS
 
 int **ctop_ids;   // pipes as global variables to be able to be accessed in signal handling functions
 
@@ -18,23 +18,23 @@ int write_to_parent(int sig, int write_end){   /* function to write into the par
 }
 
 void sig_handler1(int signum){          /*  Signal handler function for child 1 */
-    if(signum==SIGINT){
+    if(signum==SIGUSR1){
         int rps1=(rand()%100)%3+1;
         close(ctop_ids[0][0]);
         write_to_parent(rps1,ctop_ids[0][1]);
     }
-    else if(signum==SIGKILL){
+    else if(signum==SIGUSR2){
         exit(0);
     }
 }
 
 void sig_handler2(int signum){        /*  Signal handler function for child 2 */
-    if(signum==SIGINT){
+    if(signum==SIGUSR1){
         int rps2=(rand()%1000)%3+1;
         close(ctop_ids[1][0]);
         write_to_parent(rps2,ctop_ids[1][1]);
     }
-    else if(signum==SIGKILL){
+    else if(signum==SIGUSR2){
         exit(0);
     }
 }
@@ -60,12 +60,12 @@ int main(int argc, char *argv[])
         pipe(ctop_ids[i]);                     //creating pipes for both the children
     }
     if((pid1=fork())==0){               // child process 1
-        signal(SIGINT,sig_handler1);
+        signal(SIGUSR1,sig_handler1);
         for(;;);
     }
     else {
         if((pid2=fork())==0){             // child process 2
-            signal(SIGINT,sig_handler2);
+            signal(SIGUSR1,sig_handler2);
             for(;;);
         }
         else{
@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
             float score1=0.0,score2=0.0;
             while(score1<=10&&score2<=10){        // while loop for the iterations
                 sleep(1);                             //parent process sleeps for 1 second to help the child processes catch the signal
-                kill(pid1,SIGINT);
-                kill(pid2,SIGINT);
+                kill(pid1,SIGUSR1);
+                kill(pid2,SIGUSR1);
                 close(ctop_ids[0][1]);
                 read(ctop_ids[0][0],buf2,sizeof(buf2));     // reading the move from the children
                 rps1=strtol(buf2,NULL,10);
@@ -124,8 +124,8 @@ int main(int argc, char *argv[])
             }
             else if(score1>score2)printf("Child 1 won the match.\n\n");
             else printf("Child 2 won the match.\n\n");
-            kill(pid1,SIGKILL);                       // killing the child processes.
-            kill(pid2,SIGKILL);
+            kill(pid1,SIGUSR2);                       // killing the child processes.
+            kill(pid2,SIGUSR2);
         }
     }
   return 0;
