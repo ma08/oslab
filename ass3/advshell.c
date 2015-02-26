@@ -178,6 +178,8 @@ int parsecommand(char **parsed,char *str, int len, char *input_red, char *output
 int main(int argc, char *argv[])
 {
   int status;
+  int write_end;
+  int read_end;
   int saved_stdout;
   int in_pipe_id[2];
   int out_pipe_id[2];
@@ -223,7 +225,9 @@ int main(int argc, char *argv[])
       token=input;
     token_1=strtok(tok_input_1,"|");
     while((token_1=strtok(NULL,"|"))!=NULL) num_pipes++;
-    printf("%d",num_pipes);
+    /*printf("%d",num_pipes);*/
+    saved_stdin=dup(STDIN_FILENO);
+    saved_stdout=dup(STDOUT_FILENO);
     while(token!=NULL){
       /*printf("\n\n---\n\n");
       token = strtok(NULL, "|");
@@ -231,18 +235,27 @@ int main(int argc, char *argv[])
       if(num_pipes > 0){
         if(pipe_iter==0){
           pipe(out_pipe_id);
-          saved_stdout=dup(STDOUT_FILENO);
-          dup2(out_pipe_id[0],STDOUT_FILENO);
-          close(out_pipe_id[0]);
+          write_end=out_pipe_id[1];
+          dup2(write_end,STDOUT_FILENO);
+          /*close(out_pipe_id[0]);*/
           /*perror("");*/
           /*return 0;*/
         }else if(pipe_iter==num_pipes){
-          in_pipe_id[0]=out_pipe_id[0];
-          in_pipe_id[1]=out_pipe_id[1];
-          pipe(out_pipe_id);
+          read_end=out_pipe_id[0];
+          dup2(saved_stdout,STDOUT_FILENO);
+          /*close(in_pipe_id[0]);*/
+          /*close(in_pipe_id[1]);*/
+          dup2(read_end,STDIN_FILENO);
         }else{
-          in_pipe_id[0]=out_pipe_id[0];
-          in_pipe_id[1]=out_pipe_id[1];
+          read_end=out_pipe_id[0];
+          pipe(out_pipe_id);
+          /*close(in_pipe_id[0]);*/
+          /*close(in_pipe_id[1]);*/
+          /*in_pipe_id[0]=out_pipe_id[0];*/
+          /*in_pipe_id[1]=out_pipe_id[1];*/
+          write_end=out_pipe_id[1];
+          dup2(read_end,STDIN_FILENO);
+          dup2(write_end,STDOUT_FILENO);
         }
       }
       input_red[0]='\0';
@@ -255,7 +268,6 @@ int main(int argc, char *argv[])
           perror(input_red);
           break;
         }
-        saved_stdin=dup(STDIN_FILENO);
         dup2(input_fd,STDIN_FILENO);
         close(input_fd);
       }
@@ -265,7 +277,6 @@ int main(int argc, char *argv[])
           perror(output_red);
           break;
         }
-        saved_stdout=dup(STDOUT_FILENO);
         dup2(output_fd,STDOUT_FILENO);
         close(output_fd);
         /*if(errno){
@@ -477,13 +488,19 @@ int main(int argc, char *argv[])
       /*printf("\n%s",token);*/
       /*printf("\nbooo");*/
       token = strtok(NULL, "|");
-      if (input_red[0]!='\0'){
-        dup2(saved_stdin,STDIN_FILENO);
-        close(saved_stdin);
+      /*if(num_pipes==0){
+        if (input_red[0]!='\0'){
+          dup2(saved_stdin,STDIN_FILENO);
+        }
+        if (output_red[0]!='\0'||(num_pipes>0&&pipe_iter!=num_pipes)){
+          dup2(saved_stdout,STDOUT_FILENO);
+        }
+      }*/
+      if(num_pipes>0&&pipe_iter!=num_pipes){
+        close(write_end);
       }
-      if (output_red[0]!='\0'||(num_pipes>0&&pipe_iter!=num_pipes)){
-        dup2(saved_stdout,STDOUT_FILENO);
-        close(saved_stdout);
+      if(pipe_iter>0){
+        close(read_end);
       }
       pipe_iter++;
 
@@ -491,6 +508,11 @@ int main(int argc, char *argv[])
       /*printf("\n%s",token);*/
       /*printf("\n---");*/
     }
+    dup2(saved_stdin,STDIN_FILENO);
+    dup2(saved_stdout,STDOUT_FILENO);
+    close(saved_stdin);
+    close(saved_stdout);
+
     if(cwd!=getcwd(cwd,100)){
       perror("getcwd");
     }
