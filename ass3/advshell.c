@@ -213,6 +213,7 @@ int main(int argc, char *argv[])
     pipe_iter=0;
     printf("%s>",cwd);
     fgets(input,100,stdin);
+    /*printf("uuuuuuuuu");*/
     length=strlen(input);
     if(input[length-1]=='\n'){
       input[length-1]='\0';
@@ -220,14 +221,19 @@ int main(int argc, char *argv[])
     }
     strcpy(tok_input,input);
     strcpy(tok_input_1,input);
-    token = strtok(tok_input, "|");
     if(token==NULL)
       token=input;
     token_1=strtok(tok_input_1,"|");
-    while((token_1=strtok(NULL,"|"))!=NULL) num_pipes++;
+    while((token_1=strtok(NULL,"|"))!=NULL){
+      num_pipes++;
+      /*printf("ruuuuuuuu");*/
+    } 
     /*printf("%d",num_pipes);*/
     saved_stdin=dup(STDIN_FILENO);
+    /*perror("");*/
     saved_stdout=dup(STDOUT_FILENO);
+    /*perror("");*/
+    token = strtok(tok_input, "|");
     while(token!=NULL){
       /*printf("\n\n---\n\n");
       token = strtok(NULL, "|");
@@ -237,22 +243,13 @@ int main(int argc, char *argv[])
           pipe(out_pipe_id);
           write_end=out_pipe_id[1];
           dup2(write_end,STDOUT_FILENO);
-          /*close(out_pipe_id[0]);*/
-          /*perror("");*/
-          /*return 0;*/
         }else if(pipe_iter==num_pipes){
           read_end=out_pipe_id[0];
           dup2(saved_stdout,STDOUT_FILENO);
-          /*close(in_pipe_id[0]);*/
-          /*close(in_pipe_id[1]);*/
           dup2(read_end,STDIN_FILENO);
         }else{
           read_end=out_pipe_id[0];
           pipe(out_pipe_id);
-          /*close(in_pipe_id[0]);*/
-          /*close(in_pipe_id[1]);*/
-          /*in_pipe_id[0]=out_pipe_id[0];*/
-          /*in_pipe_id[1]=out_pipe_id[1];*/
           write_end=out_pipe_id[1];
           dup2(read_end,STDIN_FILENO);
           dup2(write_end,STDOUT_FILENO);
@@ -279,9 +276,6 @@ int main(int argc, char *argv[])
         }
         dup2(output_fd,STDOUT_FILENO);
         close(output_fd);
-        /*if(errno){
-          perror("");
-        }*/
       }
       /*printf("\n-------------------------\n");
       for (i = 0; i < size; ++i)
@@ -487,6 +481,7 @@ int main(int argc, char *argv[])
       }
       /*printf("\n%s",token);*/
       /*printf("\nbooo");*/
+      errno=0;
       token = strtok(NULL, "|");
       /*if(num_pipes==0){
         if (input_red[0]!='\0'){
