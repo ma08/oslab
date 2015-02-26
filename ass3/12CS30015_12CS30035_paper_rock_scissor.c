@@ -117,8 +117,13 @@ int main(int argc, char *argv[])
       printf("\nScore after this round -");
       printf("    1 : %.1f     2 : %.1f\n\n",score1,score2);
       }
-      if(score1==score2)printf("The match is drawn.\n");
-      else if(score1>score2)printf("Child 1 won the match.\n");
+      if(score1==score2){
+        int r1=rand();
+        int r2=rand();
+        if(r1>r2)printf("Child 1 won the match in tiebreaker.\n\n");
+        else if(r1<r2)printf("Child 2 won the match in tiebreaker.\n\n");
+        else printf("Tiebreaker is also tied.\n\n");}
+      else if(score1>score2)printf("Child 1 won the match.\n\n");
       else printf("Child 2 won the match.\n\n");
       kill(pid1,SIGKILL);
       kill(pid2,SIGKILL);
