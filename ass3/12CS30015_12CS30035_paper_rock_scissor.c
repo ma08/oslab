@@ -61,11 +61,13 @@ int main(int argc, char *argv[])
     }
     if((pid1=fork())==0){               // child process 1
         signal(SIGUSR1,sig_handler1);
+        signal(SIGUSR2,sig_handler1);
         for(;;);
     }
     else {
         if((pid2=fork())==0){             // child process 2
             signal(SIGUSR1,sig_handler2);
+            signal(SIGUSR2,sig_handler2);
             for(;;);
         }
         else{
@@ -112,6 +114,7 @@ int main(int argc, char *argv[])
                 printf("\nScore after this round -");
                 printf("    1 : %.1f     2 : %.1f\n\n",score1,score2);
             }
+            printf("End of the match. Killing the child processes.\n\n");
             if(score1==score2){
                 int r1=rand();                                      // deciding the winner
                 int r2=rand();
