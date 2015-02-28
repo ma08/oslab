@@ -24,6 +24,11 @@ void sig_handler1(int signum){          /*  Signal handler function for child 1 
         write_to_parent(rps1,ctop_ids[0][1]);
     }
     else if(signum==SIGUSR2){
+        printf("\nChild 1: I won :)");
+        exit(0);
+    }
+    else if(signum==SIGINT){
+        printf("\nChild 1: I lost :(");
         exit(0);
     }
 }
@@ -35,6 +40,11 @@ void sig_handler2(int signum){        /*  Signal handler function for child 2 */
         write_to_parent(rps2,ctop_ids[1][1]);
     }
     else if(signum==SIGUSR2){
+        printf("\n Child 2: I won :)");
+        exit(0);
+    }
+    else if(signum==SIGINT){
+        printf("\n Child 2: I won :(");
         exit(0);
     }
 }
@@ -115,20 +125,37 @@ int main(int argc, char *argv[])
                 printf("    1 : %.1f     2 : %.1f\n\n",score1,score2);
             }
             printf("End of the match. Killing the child processes.\n\n");
+            int winner;
             if(score1==score2){
                 int r1=rand();                                      // deciding the winner
                 int r2=rand();
                 while(r1==r2){
-                    int r1=rand();
-                    int r2=rand();
+                    r1=rand();
+                    r2=rand();
                 }
-                if(r1>r2)printf("Child 1 won the match in tiebreaker.\n\n");
-                else if(r1<r2)printf("Child 2 won the match in tiebreaker.\n\n");
+                if(r1>r2){
+                  printf("Child 1 won the match in tiebreaker.\n\n");
+                  winner=1;
+                } 
+                else if(r1<r2){
+                  printf("Child 2 won the match in tiebreaker.\n\n");
+                  winner=2;
+                }
             }
-            else if(score1>score2)printf("Child 1 won the match.\n\n");
-            else printf("Child 2 won the match.\n\n");
-            kill(pid1,SIGUSR2);                       // killing the child processes.
-            kill(pid2,SIGUSR2);
+            else if(score1>score2){
+              printf("Child 1 won the match.\n\n");
+              winner=1;
+
+            }else{
+              printf("Child 2 won the match.\n\n");
+              winner=2;
+            } 
+            // killing the child processes.
+            if(winner==1){
+              kill(pid1,SIGUSR2);                       
+            }else if(winner==2){
+              kill(pid2,SIGINT);
+            }
         }
     }
   return 0;
