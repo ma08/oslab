@@ -24,6 +24,7 @@ void sig_handler1(int signum){          /*  Signal handler function for child 1 
         write_to_parent(rps1,ctop_ids[0][1]);
     }
     else if(signum==SIGUSR2){
+        printf("Child 1 is exiting.\n\n");
         exit(0);
     }
 }
@@ -35,6 +36,7 @@ void sig_handler2(int signum){        /*  Signal handler function for child 2 */
         write_to_parent(rps2,ctop_ids[1][1]);
     }
     else if(signum==SIGUSR2){
+        printf("Child 2 is exiting.\n");
         exit(0);
     }
 }
@@ -129,7 +131,10 @@ int main(int argc, char *argv[])
             else printf("Child 2 won the match.\n\n");
             kill(pid1,SIGUSR2);                       // killing the child processes.
             kill(pid2,SIGUSR2);
+            waitpid(pid1,&i,0);
+            waitpid(pid2,&i,0);
         }
     }
+    printf("Parent is exiting.\n\n");
   return 0;
 }
