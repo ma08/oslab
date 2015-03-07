@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   msg get_msg;
   strcpy(cur_msg->mtext,buf);
   cur_msg->mtype=pid;
-  while(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,IPC_NOWAIT	) < 0){
+  while(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,IPC_NOWAIT  ) < 0){
     perror("connecting");
     /*exit(1);*/
   }
