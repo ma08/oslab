@@ -19,6 +19,7 @@ int main(int argc, char const *argv[])
 		perror("msgget");
 		exit(0);
 	}
+	msg message;
 	while(1){
 		if(msgrcv())
 	}
