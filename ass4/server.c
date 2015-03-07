@@ -34,12 +34,13 @@ int main(int argc, char const *argv[])
 		exit(0);
 	}
 	msg* message;
+  message=(msg*)malloc(sizeof(msg));
 	while(1){
-		message=(msg*)malloc(sizeof(msg));
 		if(msgrcv(up_qid,message,MSGSIZE,0,MSG_NOERROR|IPC_NOWAIT)<0){
-			perror("msgrcv");
+			/*perror("msgrcv");*/
 			continue;
 		}
+    /*printf("woo");*/
 		if(msgctl(up_qid,IPC_STAT,&qstat)<0){
 			perror("msgctl");
 		}
@@ -57,12 +58,20 @@ int main(int argc, char const *argv[])
 			if(head==NULL)head=map_list;
 			map_list=head;
 			while(map_list!=NULL){
+        /*printf("doo");*/
 				msg* msg_list;
 				msg_list=(msg*)malloc(sizeof(msg));
 				msg_list->mtype=map_list->pid;
+        /*printf("\n%d",map_list->pid);*/
 				strcpy(msg_list->mtext,list);
-				msgsnd(down_qid,&msg_list,200,IPC_NOWAIT);
+        while(msgsnd(down_qid,msg_list,MSGSIZE,IPC_NOWAIT)<0){
+          perror("sending list");
+        }
+        map_list=map_list->next;
 			}
+      /*printf("\n%d ",down_qid);*/
+      /*printf("ending");*/
+      exit(1);
 		}
 	}
 	return 0;
