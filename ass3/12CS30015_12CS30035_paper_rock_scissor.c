@@ -121,8 +121,8 @@ int main(int argc, char *argv[])
                 int r1=rand();                                      // deciding the winner
                 int r2=rand();
                 while(r1==r2){
-                    int r1=rand();
-                    int r2=rand();
+                    r1=rand();
+                    r2=rand();
                 }
                 if(r1>r2)printf("Child 1 won the match in tiebreaker.\n\n");
                 else if(r1<r2)printf("Child 2 won the match in tiebreaker.\n\n");
