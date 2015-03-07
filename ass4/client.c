@@ -32,14 +32,15 @@ int main(int argc, char *argv[])
   msg get_msg;
   strcpy(cur_msg->mtext,buf);
   cur_msg->mtype=pid;
-  if(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,IPC_NOWAIT	) < 0){
+  while(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,IPC_NOWAIT	) < 0){
     perror("connecting");
-    exit(1);
+    /*exit(1);*/
   }
-  /*printf("\n%d ",down_qid);*/
+  /*exit(1);*/
+  printf("\n%d ",down_qid);
   while(1){
-    while(msgrcv(down_qid,&get_msg,200,pid,MSG_NOERROR)<0){
-      /*perror("");*/
+    while(msgrcv(down_qid,&get_msg,200,pid,MSG_NOERROR|IPC_NOWAIT)<0){
+      perror("receiving");
     }
     printf("\n %s",get_msg.mtext);
     exit(1);

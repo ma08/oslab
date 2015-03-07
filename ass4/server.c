@@ -14,6 +14,7 @@ struct pid_idmap{
 
 int main(int argc, char const *argv[])
 {
+  int i=0;
 	pid_t client_pid;
 	int up_qid,down_qid;
 	struct msqid_ds qstat;
@@ -33,11 +34,10 @@ int main(int argc, char const *argv[])
 		perror("msgget");
 		exit(0);
 	}
-	msg* message;
-  message=(msg*)malloc(sizeof(msg));
 	while(1){
-		if(msgrcv(up_qid,message,MSGSIZE,0,MSG_NOERROR|IPC_NOWAIT)<0){
-			/*perror("msgrcv");*/
+	  msg recv_message;
+		if(msgrcv(up_qid,&recv_message,MSGSIZE,0,IPC_NOWAIT)<0){
+      /*perror("msgrcv");*/
 			continue;
 		}
     /*printf("woo");*/
@@ -45,18 +45,29 @@ int main(int argc, char const *argv[])
 			perror("msgctl");
 		}
 		client_pid=qstat.msg_lspid;
-		if(message->mtext[0]=='N'&&message->mtext[1]=='E'&&message->mtext[2]=='W'){
-			while(map_list!=NULL){
-				map_list=map_list->next;
-			}
-			map_list=(struct pid_idmap*)malloc(sizeof(struct pid_idmap));
+		if(recv_message.mtext[0]=='N'&&recv_message.mtext[1]=='E'&&recv_message.mtext[2]=='W'){
+			map_list=head;
+      if(head==NULL){
+        head=(struct pid_idmap*)malloc(sizeof(struct pid_idmap));
+        map_list=head;
+      }
+      else{
+        while(map_list->next!=NULL){
+          map_list=map_list->next;
+        }
+        map_list->next=(struct pid_idmap*)malloc(sizeof(struct pid_idmap));
+        map_list=map_list->next;
+      }
+			
 			map_list->pid=client_pid;
-			strcpy(map_list->id,(message->mtext)+4);
+			strcpy(map_list->id,(recv_message.mtext)+4);
+
 			strcat(list,map_list->id);
 			strcat(list," ");
 			map_list->next=NULL;
-			if(head==NULL)head=map_list;
+
 			map_list=head;
+      
 			while(map_list!=NULL){
         /*printf("doo");*/
 				msg* msg_list;
@@ -71,7 +82,6 @@ int main(int argc, char const *argv[])
 			}
       /*printf("\n%d ",down_qid);*/
       /*printf("ending");*/
-      exit(1);
 		}
 	}
 	return 0;
