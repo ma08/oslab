@@ -39,10 +39,12 @@ int main(int argc, char const *argv[])
   }
   while(1){
     msg recv_message;
-    if(msgrcv(up_qid,&recv_message,MSGSIZE,0,IPC_NOWAIT)<0){
+    if(msgrcv(up_qid,&recv_message,MSGSIZE,0,MSG_NOERROR)<0){
       perror("msgrcv");
       continue;
     }
+    printf("\n%s\n",recv_message.mtext);
+    fflush(stdout);
     if(msgctl(up_qid,IPC_STAT,&qstat)<0){
       perror("msgctl");
     }
@@ -79,41 +81,43 @@ int main(int argc, char const *argv[])
       }
     }
     else{
-    	map_list=head;
-    	while(map_list!=NULL&&map_list->pid!=client_pid){
-    		map_list=map_list->next;
-    	}
-    	if(map_list==NULL){
-    		printf("Error!!\n");
-    	}
-    	else{
-    		char mess[MSGSIZE];
-    		char* token;
-    		strcpy(mess,"MSG~");
-    		token=strtok(recv_message.mtext,'~');
-    		token=strtok(NULL,'~');
-    		strcat(mess,token);
-    		strcat(mess,'~');
-    		strcat(mess,ctime(recv_time));
-    		strcat(mess,'~');
-    		strcat(mess,map_list->id);
-    		token=strtok(NULL,'~');
-    		map_list=head;
-    		while(map_list!=NULL&&strcmp(token,map_list->id)!=0){
-    			map_list=map_list->next;
-    		}
-	    	if(map_list==NULL){
-    			printf("Error!!\n");
-    		}
-    		else{
-    			send_message=(msg*)malloc(sizeof(msg));
-    			send_message->mtype=map_list->pid;
-    			strcpy(send_message->mtext,mess);
-    			while(msgsnd(down_qid,send_message,MSGSIZE,IPC_NOWAIT)<0){
-          			perror("sending message");
-        		}
-    		}
-    	}
+      map_list=head;
+      while(map_list!=NULL&&map_list->pid!=client_pid){
+        map_list=map_list->next;
+      }
+      if(map_list==NULL){
+        printf("Error!!\n");
+      }
+      else{
+        char mess[MSGSIZE];
+        char* token;
+        strcpy(mess,"MSG~");
+        token=strtok(recv_message.mtext,"~");
+        token=strtok(NULL,"~");
+        strcat(mess,token);
+        strcat(mess,"~");
+        strcat(mess,ctime(&recv_time));
+        if(mess[strlen(mess)-1]=='\n')
+          mess[strlen(mess)-1]='\0';
+        strcat(mess,"~");
+        strcat(mess,map_list->id);
+        token=strtok(NULL,"~");
+        map_list=head;
+        while(map_list!=NULL&&strcmp(token,map_list->id)!=0){
+          map_list=map_list->next;
+        }
+        if(map_list==NULL){
+          printf("Error!!\n");
+        }
+        else{
+          send_message=(msg*)malloc(sizeof(msg));
+          send_message->mtype=map_list->pid;
+          strcpy(send_message->mtext,mess);
+          while(msgsnd(down_qid,send_message,MSGSIZE,IPC_NOWAIT)<0){
+            perror("sending message");
+          }
+        }
+      }
     }
   }
   return 0;
