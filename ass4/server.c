@@ -48,7 +48,8 @@ int main(int argc, char const *argv[])
       perror("msgctl");
     }
     client_pid=qstat.msg_lspid;
-    recv_time=qstat.msg_rtime;
+    recv_time=qstat.msg_stime;
+    printf("\nMessage received from client %d : %s \n",client_pid,recv_message.mtext);
     if(recv_message.mtext[0]=='N'&&recv_message.mtext[1]=='E'&&recv_message.mtext[2]=='W'){
       map_list=head;
       if(head==NULL){
@@ -80,6 +81,10 @@ int main(int argc, char const *argv[])
         while(msgsnd(down_qid,msg_list,MSGSIZE,IPC_NOWAIT)<0){
           perror("sending list");
         }
+        if(msgctl(down_qid,IPC_STAT,&qstat)<0){
+          perror("msgctl");
+        }
+        printf("\nMessage sent to client %d : %s \n",map_list->pid,list);
         map_list=map_list->next;
       }
     }
@@ -118,7 +123,11 @@ int main(int argc, char const *argv[])
           strcpy(send_message->mtext,mess);
           while(msgsnd(down_qid,send_message,MSGSIZE,IPC_NOWAIT)<0){
             perror("sending message");
+          } 
+          if(msgctl(down_qid,IPC_STAT,&qstat)<0){
+            perror("msgctl");
           }
+          printf("\nMessage sent to client %d : %s \n",map_list->pid,mess);
         }
       }
     }
