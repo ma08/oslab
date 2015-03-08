@@ -10,17 +10,16 @@
 int main(int argc, char *argv[])
 {
   char list[300];
+  int not_available=0;
   char *token;
   char msg_text[100];
   char msg_time[100];
   char sender_id[100];
   char client_list[20][10];
   char chat_id[50];
-  struct msqid_ds qstat;
-  time_t last_recv=0;
   printf("\nEnter id:");
   scanf("%s",chat_id);
-  int i=0,j=0,k=0;
+  int i=0,j=0,k=1;
   pid_t pid=getpid();
   int up_qid,down_qid;
   if((up_qid = msgget(UPQ,0666))<0){
@@ -45,33 +44,39 @@ int main(int argc, char *argv[])
   while(1){
     if(msgrcv(down_qid,&get_msg,200,pid,MSG_NOERROR|IPC_NOWAIT)<0){
       /*perror("receiving");*/
+      if(k==0){
+        printf("\nNo new message received");
+      }
     }
-    if(get_msg.mtext[0]=='L'&&get_msg.mtext[1]=='I'){
-      i=0;
-      strcpy(list,get_msg.mtext+5);
+    else{
       if(get_msg.mtext[0]=='L'&&get_msg.mtext[1]=='I'){
+        /*not_available=0;*/
+        i=0;
         strcpy(list,get_msg.mtext+5);
-      }
-      token=strtok(list," ");
-      if(strcmp(token,chat_id)!=0){
-        strcpy(client_list[i++],token);
-      }
-      while((token=strtok(NULL," "))!=NULL){
+        if(get_msg.mtext[0]=='L'&&get_msg.mtext[1]=='I'){
+          strcpy(list,get_msg.mtext+5);
+        }
+        token=strtok(list," ");
         if(strcmp(token,chat_id)!=0){
           strcpy(client_list[i++],token);
         }
+        while((token=strtok(NULL," "))!=NULL){
+          if(strcmp(token,chat_id)!=0){
+            strcpy(client_list[i++],token);
+          }
+        }
       }
-    }
-    else if(get_msg.mtext[0]=='M'&&get_msg.mtext[1]=='S'){
-      strcpy(buf,get_msg.mtext+4);
-      token=strtok(buf,"~");
-      strcpy(msg_text,token);
-      token=strtok(NULL,"~");
-      strcpy(msg_time,token);
-      token=strtok(NULL,"~");
-      strcpy(sender_id,token);
-      printf("A message is received!!\nDetails are given below:\n");
-      printf("\n(%s) %s: %s\n",msg_time,sender_id,msg_text);
+      else if(get_msg.mtext[0]=='M'&&get_msg.mtext[1]=='S'){
+        strcpy(buf,get_msg.mtext+4);
+        token=strtok(buf,"~");
+        strcpy(msg_text,token);
+        token=strtok(NULL,"~");
+        strcpy(msg_time,token);
+        token=strtok(NULL,"~");
+        strcpy(sender_id,token);
+        printf("A message is received!!\nDetails are given below:\n");
+        printf("\n(%s) %s: %s\n",msg_time,sender_id,msg_text);
+      }
     }
     if(i>=1){
       printf("\nList of other clients");
@@ -107,10 +112,17 @@ int main(int argc, char *argv[])
         cur_msg= (msg *)(malloc(sizeof(msg)));
         cur_msg->mtype=pid;
         strcpy(cur_msg->mtext,buf);
-        while(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,IPC_NOWAIT  ) < 0){
-          perror("sending message");
+        if(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,MSG_NOERROR) < 0){
+          perror("sending message failed");
+        }else{
+          printf("\n Message successfully sent");
+          
         }
       }
+    }
+    else if(!not_available){
+      printf("\nNo clients available to send");
+      not_available=1;
     }
     fflush(stdout);
   }
