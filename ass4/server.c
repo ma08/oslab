@@ -43,7 +43,6 @@ int main(int argc, char const *argv[])
       perror("msgrcv");
       continue;
     }
-    printf("\n%s\n",recv_message.mtext);
     fflush(stdout);
     if(msgctl(up_qid,IPC_STAT,&qstat)<0){
       perror("msgctl");
@@ -55,16 +54,21 @@ int main(int argc, char const *argv[])
       if(head==NULL){
         head=(struct pid_idmap*)malloc(sizeof(struct pid_idmap));
         map_list=head;
+        i=1;
       }
       else{
         while(map_list->next!=NULL){
           map_list=map_list->next;
+          i++;
         }
         map_list->next=(struct pid_idmap*)malloc(sizeof(struct pid_idmap));
         map_list=map_list->next;
+        i++;
       }
       map_list->pid=client_pid;
       strcpy(map_list->id,(recv_message.mtext)+4);
+      printf("\nNew Client with Chat ID %s and Process ID %d entered.\n",map_list->id,map_list->pid);
+      printf("Total number of clients is %d\n",i);
       strcat(list," ");
       strcat(list,map_list->id);
       map_list->next=NULL;

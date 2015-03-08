@@ -1,11 +1,12 @@
-#include<sys/msg.h>
-#include<sys/types.h>
-#include<unistd.h>
-#include<string.h>
-#include<stdlib.h>
-#include"codes.h"
-#include<stdio.h>
-#include<errno.h>
+#include <sys/msg.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include "codes.h"
+#include <stdio.h>
+#include <errno.h>
+#include <time.h>
 int main(int argc, char *argv[])
 {
   char list[300];
@@ -15,13 +16,12 @@ int main(int argc, char *argv[])
   char sender_id[100];
   char client_list[20][10];
   char chat_id[50];
+  struct msqid_ds qstat;
+  time_t last_recv=0;
   printf("\nEnter id:");
   scanf("%s",chat_id);
   int i=0,j=0,k=0;
-
   pid_t pid=getpid();
-  /*printf("%d",pid);*/
-
   int up_qid,down_qid;
   if((up_qid = msgget(UPQ,0666))<0){
     perror("msgget");
@@ -41,12 +41,9 @@ int main(int argc, char *argv[])
   cur_msg->mtype=pid;
   while(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,IPC_NOWAIT  ) < 0){
     perror("connecting");
-    /*exit(1);*/
   }
-  /*exit(1);*/
-  /*printf("\n%d ",down_qid);*/
   while(1){
-    while(msgrcv(down_qid,&get_msg,200,pid,MSG_NOERROR|IPC_NOWAIT)<0){
+    if(msgrcv(down_qid,&get_msg,200,pid,MSG_NOERROR|IPC_NOWAIT)<0){
       /*perror("receiving");*/
     }
     if(get_msg.mtext[0]=='L'&&get_msg.mtext[1]=='I'){
@@ -64,33 +61,31 @@ int main(int argc, char *argv[])
           strcpy(client_list[i++],token);
         }
       }
-    }else if(get_msg.mtext[0]=='M'&&get_msg.mtext[1]=='S'){
+    }
+    else if(get_msg.mtext[0]=='M'&&get_msg.mtext[1]=='S'){
       strcpy(buf,get_msg.mtext+4);
       token=strtok(buf,"~");
       strcpy(msg_text,token);
-      /*printf("--- %s \n",msg_text);*/
       token=strtok(NULL,"~");
       strcpy(msg_time,token);
       token=strtok(NULL,"~");
       strcpy(sender_id,token);
-      printf("\n\n(%s) %s: %s",msg_time,sender_id,msg_text);
+      printf("A message is received!!\nDetails are given below:\n");
+      printf("\n(%s) %s: %s\n",msg_time,sender_id,msg_text);
     }
-    printf("\nList of clients");
-    for (j = 0; j < i; j++) {
-
-      printf("\n %d.%s ",j+1,client_list[j]);
-    }
-    printf("\nEnd of List of clients");
     if(i>=1){
-      printf("\nDo you want to send a message?\nEnter 0 to not send a message:");
+      printf("\nList of other clients");
+      for (j = 0; j < i; j++) {
+
+        printf("\n %d.%s ",j+1,client_list[j]);
+      }
+      printf("\n\nEnter 0 to see if any message is received.\nEnter any other number to send a message:");
       scanf("%d",&k);
       if(k!=0){
         j=-1;
-        /*printf("\n%d\n",i);*/
         while(!(j>=1&&j<=i)){
           printf("\nEnter client number to send message:");
           scanf("%d",&j);
-          /*printf("\n%d",j);*/
         }  
         char c;
 
@@ -106,7 +101,6 @@ int main(int argc, char *argv[])
         if(msg_text[strlen(msg_text)-1]=='\n'){
           msg_text[strlen(msg_text)-1]='\0';
         }
-        /*printf("\n\n%s",msg_text);*/
         strcat(buf,msg_text);
         strcat(buf,"~");
         strcat(buf,client_list[j-1]);
@@ -115,28 +109,10 @@ int main(int argc, char *argv[])
         strcpy(cur_msg->mtext,buf);
         while(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,IPC_NOWAIT  ) < 0){
           perror("sending message");
-          /*exit(1);*/
         }
       }
     }
     fflush(stdout);
   }
-
-
-
-
-  /*printf("\n 1. ");
-    i++;
-    while(list[j]!='\0'){
-    if(list[j]==' '){
-    printf("\n %d. ",i);
-    i++;
-    }
-    else{
-    printf("%c",list[j]);
-    }
-    j++;
-    }*/
-  /*printf("\nEnter ")*/
   return 0;
 }
