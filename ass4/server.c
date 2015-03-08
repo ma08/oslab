@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
   int up_qid,down_qid;
   struct msqid_ds qstat;
   key_t up_key,down_key;
-  msg* send_message;
+  msg send_message;
   struct pid_idmap *map_list,*head;
   map_list=NULL;
   head=NULL;
@@ -74,11 +74,10 @@ int main(int argc, char const *argv[])
       map_list->next=NULL;
       map_list=head;
       while(map_list!=NULL){
-        msg* msg_list;
-        msg_list=(msg*)malloc(sizeof(msg));
-        msg_list->mtype=map_list->pid;
-        strcpy(msg_list->mtext,list);
-        while(msgsnd(down_qid,msg_list,MSGSIZE,IPC_NOWAIT)<0){
+        msg msg_list;
+        msg_list.mtype=map_list->pid;
+        strcpy(msg_list.mtext,list);
+        while(msgsnd(down_qid,&msg_list,MSGSIZE,IPC_NOWAIT)<0){
           perror("sending list");
         }
         if(msgctl(down_qid,IPC_STAT,&qstat)<0){
@@ -118,10 +117,9 @@ int main(int argc, char const *argv[])
           printf("Error!!\n");
         }
         else{
-          send_message=(msg*)malloc(sizeof(msg));
-          send_message->mtype=map_list->pid;
-          strcpy(send_message->mtext,mess);
-          while(msgsnd(down_qid,send_message,MSGSIZE,IPC_NOWAIT)<0){
+          send_message.mtype=map_list->pid;
+          strcpy(send_message.mtext,mess);
+          while(msgsnd(down_qid,&send_message,MSGSIZE,IPC_NOWAIT)<0){
             perror("sending message");
           } 
           if(msgctl(down_qid,IPC_STAT,&qstat)<0){

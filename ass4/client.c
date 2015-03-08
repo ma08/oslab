@@ -7,7 +7,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>
-int main(int argc, char *argv[])
+
+int main(int argc,char *argv[])
 {
   char list[300];
   int not_available=0;
@@ -22,23 +23,22 @@ int main(int argc, char *argv[])
   int i=0,j=0,k=1;
   pid_t pid=getpid();
   int up_qid,down_qid;
-  if((up_qid = msgget(UPQ,0666))<0){
+  if((up_qid=msgget(UPQ,0666))<0){
     perror("msgget");
     exit(1);
   }
-  if((down_qid = msgget(DOWNQ,0666))<0){
+  if((down_qid=msgget(DOWNQ,0666))<0){
     perror("msgget");
     exit(1);
   }
   char buf[100];
   strcpy(buf,"NEW ");
   strcat(buf,chat_id);
-
-  msg* cur_msg= (msg *)(malloc(sizeof(msg)));
+  msg cur_msg;
   msg get_msg;
-  strcpy(cur_msg->mtext,buf);
-  cur_msg->mtype=pid;
-  while(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,IPC_NOWAIT  ) < 0){
+  strcpy(cur_msg.mtext,buf);
+  cur_msg.mtype=pid;
+  while(msgsnd(up_qid,&cur_msg,MSGSIZE,IPC_NOWAIT)<0){
     perror("connecting");
   }
   while(1){
@@ -93,8 +93,7 @@ int main(int argc, char *argv[])
           scanf("%d",&j);
         }  
         char c;
-
-        while((c = getchar()) != '\n' && c != EOF)
+        while((c=getchar())!='\n'&&c!=EOF)
           /* discard */ ;
         strcpy(buf,"MSG~");
         msg_text[0]='\n';
@@ -109,14 +108,13 @@ int main(int argc, char *argv[])
         strcat(buf,msg_text);
         strcat(buf,"~");
         strcat(buf,client_list[j-1]);
-        cur_msg= (msg *)(malloc(sizeof(msg)));
-        cur_msg->mtype=pid;
-        strcpy(cur_msg->mtext,buf);
-        if(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,MSG_NOERROR) < 0){
+        cur_msg.mtype=pid;
+        strcpy(cur_msg.mtext,buf);
+        if(msgsnd(up_qid,&cur_msg,MSGSIZE,MSG_NOERROR)<0){
           perror("sending message failed");
-        }else{
-          printf("\nMessage successfully sent\n");
-          
+        }
+        else{
+          printf("\nMessage successfully sent\n");  
         }
       }
     }
