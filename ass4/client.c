@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     if(msgrcv(down_qid,&get_msg,200,pid,MSG_NOERROR|IPC_NOWAIT)<0){
       /*perror("receiving");*/
       if(k==0){
-        printf("\nNo new message received");
+        printf("\nNo new message received\n");
       }
     }
     else{
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
         strcpy(msg_time,token);
         token=strtok(NULL,"~");
         strcpy(sender_id,token);
-        printf("A message is received!!\nDetails are given below:\n");
+        printf("\nA message is received!!\nDetails are given below:\n");
         printf("\n(%s) %s: %s\n",msg_time,sender_id,msg_text);
       }
     }
@@ -115,13 +115,13 @@ int main(int argc, char *argv[])
         if(msgsnd(up_qid,(void *)cur_msg,MSGSIZE,MSG_NOERROR) < 0){
           perror("sending message failed");
         }else{
-          printf("\n Message successfully sent");
+          printf("\nMessage successfully sent\n");
           
         }
       }
     }
     else if(!not_available){
-      printf("\nNo clients available to send");
+      printf("\nWaiting for clients to join...\n\n");
       not_available=1;
     }
     fflush(stdout);

@@ -59,7 +59,6 @@ int main(int argc, char const *argv[])
       else{
         while(map_list->next!=NULL){
           map_list=map_list->next;
-          i++;
         }
         map_list->next=(struct pid_idmap*)malloc(sizeof(struct pid_idmap));
         map_list=map_list->next;
