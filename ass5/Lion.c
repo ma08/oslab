@@ -45,7 +45,7 @@ int main(int argc, char const *argv[])
 				if(available>0&&no_jackals==0&&no_rangers==0){
 					sop.sem_op=1;
 					semop(semid3,&sop,1);
-					printf("\nLion %d is granted control of meat pit %d!!\n",i+1,meat_pit);
+					printf("\nLion %d is granted control of meat pit %d!!\n\nThe meat in the pit is %d",i+1,meat_pit,available);
 					semctl(semid1,meat_pit-1,SETVAL,available-1);
 					printf("\nLion %d eats a unit of meat from meat pit %d\n",i+1,meat_pit);
 					sleep(1);
@@ -83,9 +83,10 @@ int main(int argc, char const *argv[])
 					}
 				}
 			}
-			printf("\nLion %d exits the arena... :'( \n",i+1);
+			printf("\nLion %d exits the arena... :'( \n\n",i+1);
 			exit(0);
 		}
 	}
+	for(i=0;i<n;i++)wait(NULL);
 	return 0;
 }

@@ -45,7 +45,7 @@ int main(int argc, char const *argv[])
 				if(available>0&&no_lions==0&&no_rangers==0){
 					sop.sem_op=1;
 					semop(semid4,&sop,1);
-					printf("\nJackal %d is granted control of meat pit %d!!\n",i+1,meat_pit);
+					printf("\nJackal %d is granted control of meat pit %d!!\n\nThe meat in this meat pit is %d",i+1,meat_pit,available);
 					semctl(semid1,meat_pit-1,SETVAL,available-1);
 					printf("\nJackal %d eats a unit of meat from meat pit %d\n",i+1,meat_pit);
 					sleep(1);
@@ -68,7 +68,7 @@ int main(int argc, char const *argv[])
 					printf("\nJackal %d is denied access to meat pit %d. :(\n",i+1,meat_pit);
 					if(available==0)printf("\nThere is no meat in the meat pit %d ... :(\n",meat_pit);
 					else if(no_rangers>0)printf("\nThere are rangers in meat pit %d. :(\n",meat_pit);
-					else if(no_lions>0)printf("\nThere are jackals in meat pit %d. :(\n",meat_pit);
+					else if(no_lions>0)printf("\nThere are lions in meat pit %d. :(\n",meat_pit);
 					tries++;
 					if(tries==3){
 						printf("\nJackal %d tried all the meat pits. Joining the wait queue on the meat pit %d ...\n",i+1,meat_pit);
@@ -83,9 +83,10 @@ int main(int argc, char const *argv[])
 					}
 				}
 			}
-			printf("\nJackal %d exits the arena... :'( \n",i+1);
+			printf("\nJackal %d exits the arena... :'( \n\n",i+1);
 			exit(0);
 		}
 	}
+	for(i=0;i<n;i++)wait(NULL);
 	return 0;
 }

@@ -65,7 +65,7 @@ int main(int argc, char const *argv[])
 			else if(no_jackals>0)printf("\nThere are jackals in meat pit %d. :(\n",meat_pit);
 			tries++;
 			if(tries==3){
-				printf("The ranger tried all the meat pits. Joining the wait queue on the meat pit %d ...\n",meat_pit);
+				printf("\nThe ranger tried all the meat pits. Joining the wait queue on the meat pit %d ...\n",meat_pit);
 				tries=0;
 				sop.sem_num=meat_pit-1;
 				sop.sem_op=-1;
