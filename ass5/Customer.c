@@ -1,34 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <unistd.h>
-#include <errno.h>
-#include <time.h>
 #include <sys/msg.h>
 #include <semaphore.h>
 #include <sys/sem.h>
-#define CHAIRS 10
 
 int main(int argc, char const *argv[])
 {
-	key_t bid=10,cid=11,mid=12;
-	int barberid,customerid,mutexid,i;
+	key_t bid=10,cid=11,mid=12,chid=13;
+	int barberid,customerid,mutexid,chairsid,chairs;
 	struct sembuf sop;
 	barberid=semget(bid,1,IPC_CREAT|0666);
 	customerid=semget(cid,1,IPC_CREAT|0666);
 	mutexid=semget(mid,1,IPC_CREAT|0666);
+	chairsid=semget(chid,1,IPC_CREAT|0666);
+	chairs=semctl(chairsid,0,GETVAL,0);
 	printf("\nThe customer enters the barber shop.\n");
 	sop.sem_num=0;
 	sop.sem_flg=0;
 	sop.sem_op=-1;
 	semop(mutexid,&sop,1);
 	int no_customers=semctl(customerid,0,GETVAL,0);
-	if(no_customers==CHAIRS){
+	if(no_customers==chairs){
 		sop.sem_op=1;
 		semop(mutexid,&sop,1);
-		printf("\nThere are no available chairs for waiting... Customer is exiting to find another barber shop... :-| \n");
+		printf("\nThere are no available chairs for waiting...Customer is exiting to find another barber shop... :-|\n\n");
 		exit(0);
 	}
 	printf("\nCustomer sits in a vacant waiting chair...\n");
