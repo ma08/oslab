@@ -6,14 +6,15 @@
 int main(int argc, char const *argv[])
 {
 	srand(time(NULL));
-	key_t key1=111,key2=121,key3=131,key4=141,key5=151;
-	int semid1,semid2,semid3,semid4,semid5,i,j,n,t,iterations=0,tries=0;
+	key_t key1=111,key2=121,key3=131,key4=141,key5=151,key6=161;
+	int semid1,semid2,semid3,semid4,semid5,semid6,i,j,n,t,iterations=0,tries=0;
 	struct sembuf sop;
 	semid1=semget(key1,3,IPC_CREAT|0666);
 	semid2=semget(key2,3,IPC_CREAT|0666);
 	semid3=semget(key3,3,IPC_CREAT|0666);
 	semid4=semget(key4,3,IPC_CREAT|0666);
 	semid5=semget(key5,3,IPC_CREAT|0666);
+	semid6=semget(key6,1,IPC_CREAT|0666);
 	printf("\nEnter the number of Jackals : ");
 	scanf("%d",&n);
 	printf("\nEnter the number of iterations for each jackals : ");
@@ -49,6 +50,7 @@ int main(int argc, char const *argv[])
 						printf("\nJackal %d sends a signal to wait queues of all meat pits.\n",i+1);
 						for(j=0;j<3;j++){
 							if(semctl(semid5,j,GETVAL,0)==0){
+								semctl(semid6,0,SETVAL,meat_pit);
 								sop.sem_num=j;
 								sop.sem_op=1;
 								semop(semid5,&sop,1);
@@ -69,6 +71,8 @@ int main(int argc, char const *argv[])
 						sop.sem_num=meat_pit-1;
 						sop.sem_op=-1;
 						semop(semid5,&sop,1);
+						meat_pit=semctl(semid6,0,GETVAL,0);
+						printf("\nGot a wake up signal from meat pit %d \n",meat_pit);
 					}
 					else{
 						meat_pit=(meat_pit+1)%4;
