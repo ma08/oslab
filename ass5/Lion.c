@@ -1,13 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
-#include <sys/ipc.h>
-#include <unistd.h>
-#include <errno.h>
-#include <time.h>
-#include <sys/msg.h>
-#include <semaphore.h>
 #include <sys/sem.h>
 
 int main(int argc, char const *argv[])

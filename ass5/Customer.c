@@ -1,22 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/ipc.h>
-#include <unistd.h>
-#include <sys/msg.h>
-#include <semaphore.h>
 #include <sys/sem.h>
 
 int main(int argc, char const *argv[])
 {
 	key_t bid=10,cid=11,mid=12,chid=13;
-	int barberid,customerid,mutexid,chairsid,chairs;
 	struct sembuf sop;
-	barberid=semget(bid,1,IPC_CREAT|0666);
-	customerid=semget(cid,1,IPC_CREAT|0666);
-	mutexid=semget(mid,1,IPC_CREAT|0666);
-	chairsid=semget(chid,1,IPC_CREAT|0666);
-	chairs=semctl(chairsid,0,GETVAL,0);
+	int barberid=semget(bid,1,IPC_CREAT|0666);
+	int customerid=semget(cid,1,IPC_CREAT|0666);
+	int mutexid=semget(mid,1,IPC_CREAT|0666);
+	int chairsid=semget(chid,1,IPC_CREAT|0666);
+	int chairs=semctl(chairsid,0,GETVAL,0);
 	printf("\nThe customer enters the barber shop.\n");
 	sop.sem_num=0;
 	sop.sem_flg=0;

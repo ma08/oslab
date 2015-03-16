@@ -1,20 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
-#include <sys/ipc.h>
-#include <unistd.h>
-#include <errno.h>
-#include <time.h>
-#include <sys/msg.h>
-#include <semaphore.h>
 #include <sys/sem.h>
 
 int main(int argc, char const *argv[])
 {
 	srand(time(NULL));
 	key_t key1=111,key2=121,key3=131,key4=141,key5=151;
-	int semid1,semid2,semid3,semid4,semid5,i,j;
+	int semid1,semid2,semid3,semid4,semid5,i;
 	struct sembuf sop;
 	semid1=semget(key1,3,IPC_CREAT|0666);
 	semid2=semget(key2,3,IPC_CREAT|0666);
