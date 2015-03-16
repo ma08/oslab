@@ -20,9 +20,8 @@ int main(int argc, char const *argv[])
 	customerid=semget(cid,1,IPC_CREAT|0666);
 	mutexid=semget(mid,1,IPC_CREAT|0666);
 	printf("\nThe customer enters the barber shop.\n");
-	printf("%d %d %d\n",barberid,customerid,mutexid);
 	sop.sem_num=0;
-	sop.sem_flg=1;
+	sop.sem_flg=0;
 	sop.sem_op=-1;
 	semop(mutexid,&sop,1);
 	int no_customers=semctl(customerid,0,GETVAL,0);
@@ -34,13 +33,13 @@ int main(int argc, char const *argv[])
 	}
 	printf("\nCustomer sits in a vacant waiting chair...\n");
 	semctl(customerid,0,SETVAL,no_customers+1);
-	printf("\nChecking if the barber is idle or not..\n");
 	sop.sem_op=1;
 	semop(mutexid,&sop,1);
-	printf("\nGetting a haircut finally!! Yayy!\n");
-	sleep(5);
+	printf("\nWaiting for the barber to be free...\n");
 	sop.sem_op=-1;
 	semop(barberid,&sop,1);
+	printf("\nGetting a haircut finally!! Yayy!\n");
+	sleep(5);
 	printf("\nExiting the barber shop after getting a nice haircut :)\n\n");
 	return 0;
 }
