@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/sem.h>
+#include <time.h>
+#include <unistd.h>
 
 int main(int argc, char const *argv[])
 {

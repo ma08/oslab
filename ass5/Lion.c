@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/sem.h>
+#include <time.h>
+#include <unistd.h>
 
 int main(int argc, char const *argv[])
 {
@@ -39,12 +41,12 @@ int main(int argc, char const *argv[])
 				if(available>0&&no_jackals==0&&no_rangers==0){
 					sop.sem_op=1;
 					semop(semid3,&sop,1);
-					printf("\nLion %d is granted control of meat pit %d!!\n\nThe meat in the pit is %d",i+1,meat_pit,available);
-					semctl(semid1,meat_pit-1,SETVAL,available-1);
+					printf("\nLion %d is granted control of meat pit %d!!\n\nThe meat in the pit is %d\n",i+1,meat_pit,available);
+					sop.sem_op=-1;
+					semop(semid1,&sop,1);
 					printf("\nLion %d eats a unit of meat from meat pit %d\n",i+1,meat_pit);
 					sleep(1);
 					printf("\nLion %d leaves meat pit %d.\n",i+1,meat_pit);
-					sop.sem_op=-1;
 					semop(semid3,&sop,1);
 					if(no_lions==0&&available>1){
 						printf("\nLion %d sends a signal to wait queues of all meat pits.\n",i+1);
