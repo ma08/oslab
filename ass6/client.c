@@ -33,18 +33,13 @@ void sig_handler1(int signum){
     }
 }
 
-void sig_handler2(int signum){
-    if(signum==SIGINT){}
-}
-
 int main(int argc, char const *argv[])
 {
 	key_t msgq=MSGQ,shmp=SHMPID,shmm=SHMMSG,sem1=SEM1,sem2=SEM2;
-	int msgqid,shmpid,shmmsg,mutexpid,mutexmsg,serfd,serpid,size;
-    struct msqid_ds buf;
+	int msgqid,shmpid,shmmsg,mutexpid,mutexmsg,size,my_pid;
     int* sharepid;
 	char* sharemsg;
-    msg send_message,recv_message;
+    msg recv_message;
     if(access("ser.txt",F_OK)==-1){
         printf("\nser.txt does not exist\n");
         exit(0);
@@ -65,9 +60,8 @@ int main(int argc, char const *argv[])
     sharepid=(int*)shmat(shmpid,NULL,0);
 	mutexpid=semget(sem1,1,IPC_CREAT|0666);
 	mutexmsg=semget(sem2,1,IPC_CREAT|0666);
-    int my_pid=getpid();
+    my_pid=getpid();
     int pid=fork();
-    int byeflag=0;
     if(pid==0){
     	mutex(mutexpid,-1);
     	size=sharepid[0];
@@ -75,15 +69,13 @@ int main(int argc, char const *argv[])
     	sharepid[0]++;
     	mutex(mutexpid,1);
     	while(1){
-    		msg recv_message;
-    		signal(SIGINT,sig_handler2);
-    		if(msgrcv(msgqid,&recv_message,MSGSIZE,my_pid,MSG_NOERROR)<0){
-      			continue;
-    		}
+    		signal(SIGINT,SIG_IGN);
+    		if(msgrcv(msgqid,&recv_message,MSGSIZE,my_pid,MSG_NOERROR)<0)continue;
     		printf("\nReceived message:\"%s\"\n",recv_message.mtext);
     	}
     }
     else{
+        printf("\nYou entered the conference. Press <Ctrl-C> to send a message.\n");
     	while(1){
     		char msg[MSGSIZE],msgtext[MSGSIZE],pidtext[MSGSIZE];
     		strcpy(msg,".");
@@ -94,7 +86,6 @@ int main(int argc, char const *argv[])
     			input_flag=0;
     		}
     		if(strcmp(msg,"bye")==0){
-                printf("\n%s\n",msg);
     			mutex(mutexpid,-1);
     			size=sharepid[0];
     			if(size==1)strcpy(msg,"*");
@@ -121,5 +112,6 @@ int main(int argc, char const *argv[])
     kill(pid,SIGKILL);
 	shmdt(&sharepid);
 	shmdt(&sharemsg);
+    printf("\nLeaving conference\n");
 	return 0;
 }
