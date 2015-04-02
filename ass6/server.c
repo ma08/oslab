@@ -86,6 +86,7 @@ int main(int argc, char const *argv[])
         mutex(mutexmsg,-1);
         char *token1,*token2,*token3,*saveptr;
         strcpy(sendmsg,readmsg);
+        printf("\nReceived message \"%s\"\n",sendmsg);
         token1=strtok_r(readmsg,"/",&saveptr);
         token2=strtok_r(NULL,":",&saveptr);
         token3=saveptr;
@@ -106,18 +107,19 @@ int main(int argc, char const *argv[])
                 if(readpids[i]==senderpid)continue;
                 strcpy(send_message.mtext,sendmsg);
                 send_message.mtype=readpids[i];
-                printf("\nSending message %s to pid %d\n",sendmsg,readpids[i]);
+                printf("\nSending message to pid %d\n",sendmsg,readpids[i]);
                 while(msgsnd(msgqid,&send_message,MSGSIZE,IPC_NOWAIT)<0){
                     perror("sending message");
                 }
             }
         }
     }
-    if(remove(sername)==0)printf("\nser.txt deleted successfully\n");
+    remove(sername);
     int i=msgctl(msgqid,IPC_RMID,&buf);
     i=semctl(mutexpid,0,IPC_RMID);
     i=semctl(mutexmsg,0,IPC_RMID);
 	shmdt(&sharepid);
 	shmdt(&sharemsg);
+    printf("\nTerminating Conference\n");
 	return 0;
 }

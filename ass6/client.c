@@ -28,6 +28,7 @@ int input_flag=0;
 
 void sig_handler1(int signum){
     if(signum==SIGINT){
+        printf("\n<Ctrl-C> is pressed\n");
     	input_flag=1;
     }
 }
@@ -79,7 +80,7 @@ int main(int argc, char const *argv[])
     		if(msgrcv(msgqid,&recv_message,MSGSIZE,my_pid,MSG_NOERROR)<0){
       			continue;
     		}
-    		printf("\n%s\n",recv_message.mtext);
+    		printf("\nReceived message:\"%s\"\n",recv_message.mtext);
     	}
     }
     else{
@@ -88,11 +89,12 @@ int main(int argc, char const *argv[])
     		strcpy(msg,".");
     		signal(SIGINT,sig_handler1);
     		if(input_flag==1){
-    			printf("\nEnter a message to send:");
+    			printf("\nEnter your message:");
     			scanf("%s",msg);
     			input_flag=0;
     		}
     		if(strcmp(msg,"bye")==0){
+                printf("\n%s\n",msg);
     			mutex(mutexpid,-1);
     			size=sharepid[0];
     			if(size==1)strcpy(msg,"*");
