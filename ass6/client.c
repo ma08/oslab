@@ -94,7 +94,6 @@ int main(int argc, char const *argv[])
     			input_flag=0;
     		}
     		if(strcmp(msg,"bye")==0){
-    			byeflag=1;
     			mutex(mutexpid,-1);
     			size=sharepid[0];
     			if(size==1)strcpy(msg,"*");
@@ -103,6 +102,7 @@ int main(int argc, char const *argv[])
     			sharepid[i]=sharepid[size];
     			sharepid[0]--;
     			mutex(mutexpid,1);
+    			if(strcmp(msg,"*")!=0)break;
     		}
     		sprintf(msgtext,"%d",my_pid);
     		strcat(msgtext,":");
@@ -113,7 +113,6 @@ int main(int argc, char const *argv[])
     		strcpy(sharemsg,msgtext);
     		mutex(mutexmsg,1);
     		mutex(mutexcrit,1);
-    		if(byeflag==1)break;
     	}
     }
     kill(pid,SIGKILL);
