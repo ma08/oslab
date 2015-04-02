@@ -10,9 +10,6 @@ int main()
 	int n,i,status,pid1,*a,j;
 	printf("\nEnter the number of fibonacci numbers required : ");
 	scanf("%d",&n);
-	a=(int*)malloc(n*sizeof(int));
-	a[0]=1;
-	a[1]=1;
 	printf("-----------------------------------------------\nfib(1) = 1\nfib(2) = 1\n");
 	for(i=2;i<n;++i)
 	{
