@@ -38,8 +38,8 @@ void sig_handler2(int signum){
 
 int main(int argc, char const *argv[])
 {
-	key_t msgq=MSGQ,shmp=SHMPID,shmm=SHMMSG,sem1=SEM1,sem2=SEM2,sem3=SEM3;
-	int msgqid,shmpid,shmmsg,mutexpid,mutexmsg,serfd,serpid,mutexcrit,size;
+	key_t msgq=MSGQ,shmp=SHMPID,shmm=SHMMSG,sem1=SEM1,sem2=SEM2;
+	int msgqid,shmpid,shmmsg,mutexpid,mutexmsg,serfd,serpid,size;
     struct msqid_ds buf;
     int* sharepid;
 	char* sharemsg;
@@ -64,7 +64,6 @@ int main(int argc, char const *argv[])
     sharepid=(int*)shmat(shmpid,NULL,0);
 	mutexpid=semget(sem1,1,IPC_CREAT|0666);
 	mutexmsg=semget(sem2,1,IPC_CREAT|0666);
-    mutexcrit=semget(sem3,1,IPC_CREAT|0666);
     int my_pid=getpid();
     int pid=fork();
     int byeflag=0;
@@ -85,7 +84,7 @@ int main(int argc, char const *argv[])
     }
     else{
     	while(1){
-    		char msg[MSGSIZE],msgtext[MSGSIZE];
+    		char msg[MSGSIZE],msgtext[MSGSIZE],pidtext[MSGSIZE];
     		strcpy(msg,".");
     		signal(SIGINT,sig_handler1);
     		if(input_flag==1){
@@ -99,20 +98,22 @@ int main(int argc, char const *argv[])
     			if(size==1)strcpy(msg,"*");
     			int i=1;
     			while(sharepid[i]!=my_pid)i++;
-    			sharepid[i]=sharepid[size];
-    			sharepid[0]--;
+    			sharepid[i]=0;
+                sharepid[0]--;
     			mutex(mutexpid,1);
     			if(strcmp(msg,"*")!=0)break;
     		}
-    		sprintf(msgtext,"%d",my_pid);
+    		sprintf(pidtext,"%d",my_pid);
+            strcpy(msgtext,getlogin());
+            strcat(msgtext,"/");
+            strcat(msgtext,pidtext);
     		strcat(msgtext,":");
     		strcat(msgtext,msg);
-    		while(semctl(mutexmsg,0,GETVAL,0)!=0);
-    		mutex(mutexcrit,-1);
+    		while(semctl(mutexmsg,0,GETVAL,0)>0);
     		mutex(mutexmsg,1);
     		strcpy(sharemsg,msgtext);
     		mutex(mutexmsg,1);
-    		mutex(mutexcrit,1);
+            if(strcmp(msg,"*")==0)break;
     	}
     }
     kill(pid,SIGKILL);

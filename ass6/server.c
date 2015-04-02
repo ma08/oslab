@@ -26,8 +26,8 @@ void mutex(int op,int smop){
 
 int main(int argc, char const *argv[])
 {
-	key_t msgq=MSGQ,shmp=SHMPID,shmm=SHMMSG,sem1=SEM1,sem2=SEM2,sem3=SEM3;
-	int msgqid,shmpid,shmmsg,mutexpid,mutexmsg,serfd,serpid,mutexcrit;
+	key_t msgq=MSGQ,shmp=SHMPID,shmm=SHMMSG,sem1=SEM1,sem2=SEM2;
+	int msgqid,shmpid,shmmsg,mutexpid,mutexmsg,serfd,serpid;
     FILE* utmpfp;
     int* sharepid;
     char* sharemsg;
@@ -68,47 +68,45 @@ int main(int argc, char const *argv[])
     sharepid[0]=0;
 	mutexpid=semget(sem1,1,IPC_CREAT|0666);
 	mutexmsg=semget(sem2,1,IPC_CREAT|0666);
-    mutexcrit=semget(sem3,1,IPC_CREAT|0666);
 	semctl(mutexpid,0,SETVAL,1);
 	semctl(mutexmsg,0,SETVAL,0);
-    semctl(mutexcrit,0,SETVAL,1);
     printf("\nInitialisation Complete\n");
     utmpfp=fopen("/var/run/utmp","r");
     struct utmp u;
     while(fread(&u,sizeof(u),1,utmpfp)>0){
-        if(getpwnam(u.ut_user)==NULL)continue;
+        if(getpwnam(u.ut_name)==NULL)continue;
         printf("Sending commence notification to %s\n",u.ut_line);
         sprintf(name,"./commence > /dev/%s",u.ut_line);
         system(name);
     }
-
     while(1){
-        mutex(mutexcrit,-1);
-        mutex(mutexmsg,-2);
+        while(semctl(mutexmsg,0,GETVAL,0)<2);
         strcpy(readmsg,sharemsg);
-        mutex(mutexcrit,1);
-        char* token;
+        mutex(mutexmsg,-1);
+        mutex(mutexmsg,-1);
+        char *token1,*token2,*token3,*saveptr;
         strcpy(sendmsg,readmsg);
-        token=strtok(readmsg,":");
-        int senderpid=strtol(token,NULL,10);
-        token=strtok(NULL,":");
-        if(strcmp(token,".")==0)continue;
-        else if(strcmp(token,"*")==0)break;
+        token1=strtok_r(readmsg,"/",&saveptr);
+        token2=strtok_r(NULL,":",&saveptr);
+        token3=saveptr;
+        int senderpid=strtol(token2,NULL,10);
+        if(strcmp(token3,".")==0)continue;
+        else if(strcmp(token3,"*")==0)break;
         else {
-            int readpids[20],i=1,size;
+            int readpids[20],i=1,size,real_size=0;
             mutex(mutexpid,-1);
             size=sharepid[0];
             for(i=1;i<size+1;i++){
-                readpids[i-1]=sharepid[i];
+                if(sharepid[i]!=0){readpids[i-1]=sharepid[i];
+                    real_size++;}
             }
             mutex(mutexpid,1);
             i=0;
-            for(i=0;i<size;i++){
-                printf("\n%d %d\n",readpids[i],senderpid);
+            for(i=0;i<real_size;i++){
                 if(readpids[i]==senderpid)continue;
                 strcpy(send_message.mtext,sendmsg);
                 send_message.mtype=readpids[i];
-                printf("\nSending message to pid %d\n",readpids[i]);
+                printf("\nSending message %s to pid %d\n",sendmsg,readpids[i]);
                 while(msgsnd(msgqid,&send_message,MSGSIZE,IPC_NOWAIT)<0){
                     perror("sending message");
                 }
@@ -119,7 +117,6 @@ int main(int argc, char const *argv[])
     int i=msgctl(msgqid,IPC_RMID,&buf);
     i=semctl(mutexpid,0,IPC_RMID);
     i=semctl(mutexmsg,0,IPC_RMID);
-    i=semctl(mutexcrit,0,IPC_RMID);
 	shmdt(&sharepid);
 	shmdt(&sharemsg);
 	return 0;
