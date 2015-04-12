@@ -33,7 +33,7 @@ void level_increase(int id){
   if(id==1){
     swap(to_do,to_do_next);
     url_level++;
-    cout<<endl<<"The new level number is "<<url_level<<endl;
+    cout<<endl<<"The new level number is "<<url_level<<".\n";
   }
   ret=pthread_barrier_wait(&barrier2);
 }
@@ -42,7 +42,6 @@ void init_string(struct Struct *s){
   s->len=0;
   s->ptr=(char*) malloc(s->len+1);
   if(s->ptr==NULL){
-    fprintf(stderr,"malloc() failed\n");
     exit(EXIT_FAILURE);
   }
   s->ptr[0]='\0';
@@ -52,7 +51,6 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, struct Struct *s){
   size_t new_len=s->len+size*nmemb;
   s->ptr=(char*)realloc(s->ptr, new_len+1);
   if(s->ptr==NULL){
-    fprintf(stderr,"realloc() failed\n");
     exit(EXIT_FAILURE);
   }
   memcpy(s->ptr+s->len,ptr,size*nmemb);
@@ -69,14 +67,14 @@ void* parse_urls(void* threadid)
     string url;
     pthread_mutex_lock(&to_do_mutex);
     if(to_do.empty()){
-      cout<<endl<<"Thread "<<id<<" found to-do queue empty\n";
+      cout<<endl<<"Thread "<<id<<" found to-do queue empty.\n";
       pthread_mutex_unlock(&to_do_mutex);
       level_increase(id);
       if(url_level==LEVEL)break;
       else continue;
     }
     url=to_do.front();
-    cout<<endl<<"Thread "<<id<<" dequeueing a url from to-do queue : "<<url<<endl;
+    cout<<endl<<"Thread "<<id<<" dequeueing a url from to-do queue : "<<url<<".\n";
     to_do.pop();
     done_map[url]++;
     if(done_map[url]!=1){done_map[url]--;
@@ -101,16 +99,12 @@ void* parse_urls(void* threadid)
       tree<HTML::Node>::iterator it=dom.begin();
       tree<HTML::Node>::iterator end=dom.end();
       for(;it!=end;++it){
-        if(it->tagName()=="a"){
+        if(it->tagName()=="a"||it->tagName()=="A"){
           it->parseAttributes();
-          string str=it->attribute("href").second,str1=url;
-          if(str==""||str=="#"||str=="/"||str=="/#")continue;
-          else if(str[0]=='/')str1.append(str.substr(1));
-          else if(str[0]=='h'&&str[1]=='t'&&str[2]=='t'&&str[3]=='p')str1=str;
-          else if(str.substr(0,6)=="mailto")continue;
-          else str1.append(str);
+          string str=it->attribute("href").second;
+          if(str.substr(0,4)!="http")continue;
           pthread_mutex_lock(&to_do_next_mutex);
-          to_do_next.push(str1);
+          to_do_next.push(str);
           pthread_mutex_unlock(&to_do_next_mutex);
         }
       }
@@ -128,7 +122,7 @@ int main(int argc, char const *argv[])
   int ret1,ret2,x; 
   ret1=pthread_barrier_init(&barrier1,&attr,NUMTHREADS);
   ret2=pthread_barrier_init(&barrier2,&attr,NUMTHREADS);
-  to_do.push("cse.iitkgp.ac.in/");
+  to_do.push("http://cse.iitkgp.ac.in/");
   void* status;
   for(int i=0;i<NUMTHREADS;i++){
     x=pthread_create(&threads[i],NULL,parse_urls,(void*)(i+1));
@@ -140,10 +134,11 @@ int main(int argc, char const *argv[])
         exit(-1);
       }
   }
+  cout<<"\n<URL>\t<Thread-id>\tLevel\n\n"
   for(int i=0;i<done.size();++i){
     cout<<done[i].first.first<<"\t"<<done[i].first.second<<"\t"<<done[i].second<<endl;
   }
-  for(int i=0;i<to_do.size();++i){
+  while(to_do.size()>0){
     string s=to_do.front();
     to_do.pop();
     cout<<s<<"\t0\t"<<"\t"<<LEVEL<<endl;
