@@ -10,7 +10,7 @@
 #include <curl/curl.h>
 #include <htmlcxx/html/ParserDom.h>
 #define NUMTHREADS 5
-
+#define LEVEL 3
 using namespace std;
 using namespace htmlcxx;
 
@@ -38,28 +38,26 @@ void level_increase(int id){
   ret=pthread_barrier_wait(&barrier2);
 }
 
-void init_string(struct Struct *s) {
-  s->len = 0;
-  s->ptr =(char*) malloc(s->len+1);
-  if (s->ptr == NULL) {
-    fprintf(stderr, "malloc() failed\n");
+void init_string(struct Struct *s){
+  s->len=0;
+  s->ptr=(char*) malloc(s->len+1);
+  if(s->ptr==NULL){
+    fprintf(stderr,"malloc() failed\n");
     exit(EXIT_FAILURE);
   }
-  s->ptr[0] = '\0';
+  s->ptr[0]='\0';
 }
 
-size_t writefunc(void *ptr, size_t size, size_t nmemb, struct Struct *s)
-{
-  size_t new_len = s->len + size*nmemb;
-  s->ptr =(char*) realloc(s->ptr, new_len+1);
-  if (s->ptr == NULL) {
-    fprintf(stderr, "realloc() failed\n");
+size_t writefunc(void *ptr, size_t size, size_t nmemb, struct Struct *s){
+  size_t new_len=s->len+size*nmemb;
+  s->ptr=(char*)realloc(s->ptr, new_len+1);
+  if(s->ptr==NULL){
+    fprintf(stderr,"realloc() failed\n");
     exit(EXIT_FAILURE);
   }
-  memcpy(s->ptr+s->len, ptr, size*nmemb);
-  s->ptr[new_len] = '\0';
-  s->len = new_len;
-
+  memcpy(s->ptr+s->len,ptr,size*nmemb);
+  s->ptr[new_len]='\0';
+  s->len=new_len;
   return size*nmemb;
 }
 
@@ -74,7 +72,7 @@ void* parse_urls(void* threadid)
       cout<<endl<<"Thread "<<id<<" found to-do queue empty\n";
       pthread_mutex_unlock(&to_do_mutex);
       level_increase(id);
-      if(url_level==3)break;
+      if(url_level==LEVEL)break;
       else continue;
     }
     url=to_do.front();
@@ -88,21 +86,20 @@ void* parse_urls(void* threadid)
     if(flag==1)continue;
     CURL *curl;
     CURLcode res;
-    curl = curl_easy_init();
-    if(curl) {
+    curl=curl_easy_init();
+    if(curl){
       struct Struct s;
       init_string(&s);
-      curl_easy_setopt(curl, CURLOPT_URL,url.c_str());
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
-      res = curl_easy_perform(curl);
+      curl_easy_setopt(curl,CURLOPT_URL,url.c_str());
+      curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION, writefunc);
+      curl_easy_setopt(curl,CURLOPT_WRITEDATA, &s);
+      res=curl_easy_perform(curl);
       string html(s.ptr);
       free(s.ptr);
       HTML::ParserDom parser;
-      tree<HTML::Node> dom = parser.parseTree(html);
-      //Dump all links in the tree
-      tree<HTML::Node>::iterator it = dom.begin();
-      tree<HTML::Node>::iterator end = dom.end();
+      tree<HTML::Node> dom=parser.parseTree(html);
+      tree<HTML::Node>::iterator it=dom.begin();
+      tree<HTML::Node>::iterator end=dom.end();
       for(;it!=end;++it){
         if(it->tagName()=="a"){
           it->parseAttributes();
@@ -112,13 +109,11 @@ void* parse_urls(void* threadid)
           else if(str[0]=='h'&&str[1]=='t'&&str[2]=='t'&&str[3]=='p')str1=str;
           else if(str.substr(0,6)=="mailto")continue;
           else str1.append(str);
-          cout<<str1<<endl;
           pthread_mutex_lock(&to_do_next_mutex);
           to_do_next.push(str1);
           pthread_mutex_unlock(&to_do_next_mutex);
         }
       }
-      /* always cleanup */
       curl_easy_cleanup(curl);
     }
   }
@@ -144,17 +139,14 @@ int main(int argc, char const *argv[])
         printf("ERROR; return code from pthread_join() is %d\n",x);
         exit(-1);
       }
-      printf("Main: completed join with thread %d having a status of %ld\n",i,(long)status);
   }
-  int level=1;
   for(int i=0;i<done.size();++i){
     cout<<done[i].first.first<<"\t"<<done[i].first.second<<"\t"<<done[i].second<<endl;
   }
-  cout<<to_do.size()<<endl;
   for(int i=0;i<to_do.size();++i){
     string s=to_do.front();
     to_do.pop();
-    cout<<s<<"\t0\t"<<"\t"<<level+1<<endl;
+    cout<<s<<"\t0\t"<<"\t"<<LEVEL<<endl;
   }
   pthread_barrierattr_destroy(&attr);
   pthread_mutex_destroy(&to_do_mutex);
