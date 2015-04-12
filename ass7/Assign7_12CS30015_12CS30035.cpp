@@ -104,7 +104,7 @@ void* parse_urls(void* threadid)
         if(it->tagName()=="a"){
           it->parseAttributes();
           string str=it->attribute("href").second,str1=url;
-          if(str=="#"||str=="/"||str=="/#")continue;
+          if(str==""||str=="#"||str=="/"||str=="/#")continue;
           else if(str[0]=='/')str1.append(str.substr(1));
           else if(str[0]=='h'&&str[1]=='t'&&str[2]=='t'&&str[3]=='p')str1=str;
           else if(str.substr(0,6)=="mailto")continue;
