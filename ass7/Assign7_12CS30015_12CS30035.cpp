@@ -22,7 +22,7 @@ struct Struct {
 queue<string> to_do,to_do_next;
 vector<pair<pair<string,int>,int > > done;
 pthread_mutex_t to_do_next_mutex,to_do_mutex;
-map<string,int> done_map;
+map<string,int> done_map,to_do_map;
 pthread_barrier_t barrier1,barrier2;
 pthread_barrierattr_t attr;
 int url_level=1;
@@ -72,9 +72,8 @@ void* parse_urls(void* threadid)
     url=to_do.front();
     cout<<endl<<"Thread "<<id<<" dequeueing a url from to-do queue : "<<url<<".\n";
     to_do.pop();
-    done_map[url]++;
-    if(done_map[url]!=1){done_map[url]--;
-      flag=1;}
+    if(done_map[url]==1)flag=1;
+    else done_map[url]=1;
     if(flag==0)done.push_back(make_pair(make_pair(url,id),url_level));
     pthread_mutex_unlock(&to_do_mutex);
     if(flag==1)continue;
@@ -97,10 +96,18 @@ void* parse_urls(void* threadid)
       for(;it!=end;++it){
         if(it->tagName()=="a"||it->tagName()=="A"){
           it->parseAttributes();
-          string str=it->attribute("href").second;
-          if(str.substr(0,4)!="http")continue;
+          string str=it->attribute("href").second,str1=url;
+          if(url[url.length()-1]!='/')str1.append("/");
+          if(str[0]!='/'&&str[0]!='#'&&str.substr(0,6)!="mailto"&&str.substr(0,4)!="http"){
+            str1.append(str);
+            str=str1;
+          }
+          if(str.substr(0,4)!="http"||str.substr(0,6)=="mailto")continue;
           pthread_mutex_lock(&to_do_next_mutex);
-          to_do_next.push(str);
+          if(to_do_map[str]!=1){
+            to_do_next.push(str);
+            to_do_map[str]=1;
+          }
           pthread_mutex_unlock(&to_do_next_mutex);
         }
       }
@@ -118,13 +125,13 @@ int main(int argc, char const *argv[])
   int x; 
   pthread_barrier_init(&barrier1,&attr,NUMTHREADS);
   pthread_barrier_init(&barrier2,&attr,NUMTHREADS);
-  to_do.push("http://cse.iitkgp.ac.in/");
+  to_do.push("http://cse.iitkgp.ac.in");
   void* status;
   for(int i=0;i<NUMTHREADS;i++)x=pthread_create(&threads[i],NULL,parse_urls,(void*)(i+1));
 
   for(int i=0;i<NUMTHREADS;i++)x=pthread_join(threads[i],&status);
 
-  cout<<"\n<URL>\t<Thread-id>\tLevel\n\n";
+  cout<<"\n<URL>\t<Thread-id>\t<Level>\n\n";
   for(int i=0;i<done.size();++i){
     cout<<done[i].first.first<<"\t"<<done[i].first.second<<"\t"<<done[i].second<<endl;
   }
