@@ -22,7 +22,7 @@ struct Struct {
 queue<string> to_do,to_do_next;
 vector<pair<pair<string,int>,int > > done;
 pthread_mutex_t to_do_next_mutex,to_do_mutex;
-map<string,int> done_map,to_do_map;
+map<string,int> done_map;
 pthread_barrier_t barrier1,barrier2;
 pthread_barrierattr_t attr;
 int url_level=1;
@@ -98,16 +98,13 @@ void* parse_urls(void* threadid)
           it->parseAttributes();
           string str=it->attribute("href").second,str1=url;
           if(url[url.length()-1]!='/')str1.append("/");
-          if(str[0]!='/'&&str[0]!='#'&&str.substr(0,6)!="mailto"&&str.substr(0,4)!="http"){
+          if(str!=""&&str[0]!='/'&&str[0]!='#'&&str.substr(0,6)!="mailto"&&str.substr(0,4)!="http"){
             str1.append(str);
             str=str1;
           }
           if(str.substr(0,4)!="http"||str.substr(0,6)=="mailto")continue;
           pthread_mutex_lock(&to_do_next_mutex);
-          if(to_do_map[str]!=1){
-            to_do_next.push(str);
-            to_do_map[str]=1;
-          }
+          to_do_next.push(str);
           pthread_mutex_unlock(&to_do_next_mutex);
         }
       }
