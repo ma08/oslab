@@ -1,0 +1,13 @@
+set title "Page Faults VS Number of Frames"
+set xlabel "Frames"
+set ylabel "Page Faults"
+set grid
+set autoscale
+set style data linespoints
+set term png
+set output "Graph.png"
+plot "FIFO_output.txt" using 1:2 title "FIFO", \
+     "LRU_output.txt" using 1:2 title "LRU", \
+     "LFU_output.txt"  using 1:2 title "LFU", \
+     "secondChance.txt"  using 1:2 title "SC"
+replot

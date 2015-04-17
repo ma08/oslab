@@ -1,6 +1,6 @@
 cc gen_input.c
-dimension=6
-int_per_page=3
+dimension=8
+int_per_page=2
 ./a.out $dimension $int_per_page > input.txt
 #rm FIFO_output.txt LRU_output.txt LFU_output.txt secondChance.txt
 dir_name="output_data_$dimension"
@@ -27,4 +27,8 @@ do
   echo $c $result
   echo $c $result >> secondChance.txt
 done
+rm $dir_name/*.txt
 mv FIFO_output.txt LRU_output.txt LFU_output.txt secondChance.txt $dir_name
+cp plot.txt $dir_name
+cd $dir_name
+gnuplot plot.txt
