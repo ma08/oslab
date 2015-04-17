@@ -148,6 +148,7 @@ int secondChance(int n_frames, int ref[], int size){
           popped=pageq.front();
           pageq.pop();
           if(page_ref[popped]==0){
+            page_ref.erase(popped);
             break;
           }
           pageq.push(popped);
