@@ -40,47 +40,7 @@ class naivePriority{
       }
     }
 };
-int secondChance(int n_frames, int ref[],int size){
-  int result=0;
-  map<int,int> pages;
-  map<int,int>::iterator it;
-  int i;
-  int break_flag=0;
-  for (i = 0; i < size; ++i){
-    it=pages.find(ref[i]);
-    if(it==pages.end()){
-      //page fault
-      result++;
-      break_flag=0;
-      /*printf("\n%d %d page fault",i,ref[i]);*/
-      if(pages.size()==n_frames){
-        for(it=pages.begin();it!=pages.end();it++){
-          if(it->second==0){
-            break_flag=1;
-            pages.erase(it);
-            break;
-          }else{
-            it->second = 0;
-            continue;
-          }
-        }
-        //All are 1s. Reiterating the pages to replace
-        if(break_flag == 0){
-          it=pages.begin();
-          //it->second is guaranteed to be zero
-          pages.erase(it);
-        }
-        /*printf(" %d",it->first);*/
-        pages[ref[i]]=0;
-      }else{
-        pages[ref[i]]=0;
-      }
-    }else{
-      pages[ref[i]]=1;
-    }
-  }
-  return result;
-}
+
 
 int LFU(int n_frames, int ref[], int size){
   int result=0;
@@ -165,6 +125,43 @@ int FIFO(int n_frames, int ref[], int size){
         pageq.push(ref[i]);
         page_set.insert(ref[i]);
       }
+    }
+  }
+  return result;
+}
+
+int secondChance(int n_frames, int ref[], int size){
+  int result=0;
+  queue<int> pageq;
+  map<int,int> page_ref;
+  map<int,int>::iterator it;
+  int popped;
+  int i;
+  for (i = 0; i < size; ++i){
+    it=page_ref.find(ref[i]);
+    if(it==page_ref.end()){
+      result++;
+      /*printf("\n%d %d page fault",i,ref[i]);*/
+      if(pageq.size()==n_frames){
+        while(1){
+          //page fault replace
+          popped=pageq.front();
+          pageq.pop();
+          if(page_ref[popped]==0){
+            break;
+          }
+          pageq.push(popped);
+          page_ref[popped]=0;
+        }
+        pageq.push(ref[i]);
+        page_ref[ref[i]]=0;
+      }else{
+        //just push
+        pageq.push(ref[i]);
+        page_ref[ref[i]]=0;
+      }
+    }else{
+      page_ref[ref[i]]=1;
     }
   }
   return result;
