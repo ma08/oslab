@@ -56,28 +56,27 @@ int secondChance(int n_frames, int ref[],int size){
       if(pages.size()==n_frames){
         for(it=pages.begin();it!=pages.end();it++){
           if(it->second==0){
-            break_flag = 1;
+            break_flag=1;
+            pages.erase(it);
             break;
           }else{
-            it->second = 1;
+            it->second = 0;
             continue;
           }
         }
-        if(break_flag == 1){
-          for(it=pages.begin();it!=pages.end();it++){
-            if(it->second==0){
-              break;
-            }
-          }
+        //All are 1s. Reiterating the pages to replace
+        if(break_flag == 0){
+          it=pages.begin();
+          //it->second is guaranteed to be zero
+          pages.erase(it);
         }
         /*printf(" %d",it->first);*/
-        pages.erase(it);
         pages[ref[i]]=0;
       }else{
         pages[ref[i]]=0;
       }
     }else{
-      pages[ref[i]]=0;
+      pages[ref[i]]=1;
     }
   }
   return result;

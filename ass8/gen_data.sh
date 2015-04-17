@@ -1,6 +1,12 @@
 cc gen_input.c
-dimension=8
-int_per_page=2
+#commandline arguments for dimension and integers per page
+dimension=$1
+int_per_page=$2
+if [ $# -eq 0 ]; then
+  dimension=8
+  int_per_page=3
+  echo "No arguments provided, using $dimension $int_per_page"
+fi
 ./a.out $dimension $int_per_page > input.txt
 #rm FIFO_output.txt LRU_output.txt LFU_output.txt secondChance.txt
 dir_name="output_data_$dimension"
